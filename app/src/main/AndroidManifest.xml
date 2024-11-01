@@ -3,6 +3,8 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:name="com.android.launcher.permission.INSTALL_SHORTCUT">
 
+    <uses-permission android:name="android.permission.INTERNET" />
+
     <application
         android:allowBackup="true"
         android:dataExtractionRules="@xml/data_extraction_rules"
@@ -14,13 +16,16 @@
         android:theme="@style/Theme.ChatApp"
         tools:targetApi="31">
         <activity
-            android:name=".RegisterActivity"
+            android:name=".Re_Sign.LoginActivity"
+            android:exported="false" />
+        <activity
+            android:name=".Re_Sign.RegisterActivity"
             android:exported="false" />
         <activity
             android:name=".MainActivity"
             android:exported="false" />
         <activity
-            android:name=".LoginActivity"
+            android:name=".Chat.Chats"
             android:exported="true">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
