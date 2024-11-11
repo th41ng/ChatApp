@@ -4,6 +4,8 @@
     android:name="com.android.launcher.permission.INSTALL_SHORTCUT">
 
     <uses-permission android:name="android.permission.INTERNET" />
+    <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
+    <uses-permission android:name="android.permission.READ_MEDIA_IMAGES" />
 
     <application
         android:allowBackup="true"
@@ -16,16 +18,16 @@
         android:theme="@style/Theme.ChatApp"
         tools:targetApi="31">
         <activity
-            android:name=".Re_Sign.LoginActivity"
+            android:name=".Chat.InfoChat"
+            android:exported="false" />
+        <activity
+            android:name=".Chat.Chats"
             android:exported="false" />
         <activity
             android:name=".Re_Sign.RegisterActivity"
             android:exported="false" />
         <activity
-            android:name=".MainActivity"
-            android:exported="false" />
-        <activity
-            android:name=".Chat.Chats"
+            android:name=".Re_Sign.LoginActivity"
             android:exported="true">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />

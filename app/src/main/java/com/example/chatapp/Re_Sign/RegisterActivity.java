@@ -14,7 +14,7 @@ import android.widget.Toast;
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 
-import com.example.chatapp.MainActivity;
+import com.example.chatapp.Chat.Chats;
 import com.example.chatapp.R;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
@@ -120,7 +120,7 @@ public class RegisterActivity extends AppCompatActivity {
                         if (task.isSuccessful()) {
                             Toast.makeText(getApplicationContext(), "Thông tin người dùng đã được lưu", Toast.LENGTH_SHORT).show();
                             // Chuyển đến MainActivity sau khi lưu thành công
-                            Intent intent = new Intent(RegisterActivity.this, MainActivity.class);
+                            Intent intent = new Intent(RegisterActivity.this, Chats.class);
                             startActivity(intent);
                             finish(); // Kết thúc hoạt động này
                         } else {
