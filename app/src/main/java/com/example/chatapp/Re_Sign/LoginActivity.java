@@ -13,13 +13,20 @@ import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.preference.Preference;
 
 import com.example.chatapp.Chat.Chats;
+import com.example.chatapp.ChatUser.ChatUserMain;
+import com.example.chatapp.ChatUser.PreferenceManager;
 import com.example.chatapp.R;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
 import com.google.firebase.auth.AuthResult;
 import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.FirebaseUser;
+import com.google.firebase.firestore.DocumentReference;
+import com.google.firebase.firestore.DocumentSnapshot;
+import com.google.firebase.firestore.FirebaseFirestore;
 
 public class LoginActivity extends AppCompatActivity {
     private EditText emailedit, passedit;
@@ -96,9 +103,40 @@ public class LoginActivity extends AppCompatActivity {
                     Toast.makeText(getApplicationContext(), "Đăng nhập thành công", Toast.LENGTH_SHORT).show();
                     rememberUser(email, pass, chkRememberPass.isChecked()); // Lưu trạng thái đăng nhập nếu chọn ghi nhớ
 
-                    Intent intent = new Intent(LoginActivity.this, Chats.class);
+                    // Lấy FirebaseUser hiện tại
+                    FirebaseUser user = mAuth.getCurrentUser();
+
+                    if (user != null) {
+                        // Truy vấn Firestore để lấy thông tin người dùng
+                        FirebaseFirestore db = FirebaseFirestore.getInstance();
+                        DocumentReference userRef = db.collection("users").document(user.getUid());
+
+                        userRef.get()
+                                .addOnCompleteListener(new OnCompleteListener<DocumentSnapshot>() {
+                                    @Override
+                                    public void onComplete(@NonNull Task<DocumentSnapshot> task1) {
+                                        if (task1.isSuccessful()) {
+                                            DocumentSnapshot documentSnapshot = task1.getResult();
+                                            if (documentSnapshot.exists()) {
+                                                // Lưu thông tin người dùng vào SharedPreferences
+                                                PreferenceManager preferenceManager = new PreferenceManager(getApplicationContext());
+                                                preferenceManager.putBoolean("isSignedIn", true);
+                                                preferenceManager.putString("userId", user.getUid());
+                                                preferenceManager.putString("name", documentSnapshot.getString("name"));
+                                                preferenceManager.putString("image", documentSnapshot.getString("image"));
+                                            } else {
+                                                Log.d("Firestore", "Không có thông tin!");
+                                            }
+                                        } else {
+                                            Log.e("Firestore", "Lỗi trong việc lấy thông tin: ", task1.getException());
+                                        }
+                                    }
+                                });
+                    }
+                    Intent intent = new Intent(LoginActivity.this, ChatUserMain.class);
                     startActivity(intent);
                     finish();
+
                 } else {
                     Toast.makeText(getApplicationContext(), "Đăng nhập không thành công!", Toast.LENGTH_SHORT).show();
                 }
