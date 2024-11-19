@@ -12,9 +12,9 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
+import com.example.chatapp.Chat.Chats;
+import com.example.chatapp.PreferenceManager;
 import com.example.chatapp.R;
-import com.google.firebase.database.DatabaseReference;
-import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.QueryDocumentSnapshot;
 
@@ -63,11 +63,14 @@ public class UserActivity extends AppCompatActivity implements UserListener{
     }
     @Override
     public void onUserClicked(User user) {
-        Intent intent = new Intent(getApplicationContext(), ChatUserMain.class);
-        intent.putExtra("user", user);
+        Intent intent = new Intent(getApplicationContext(), Chats.class);
+        intent.putExtra("friendId", user.userId);
+        intent.putExtra("friendName", user.name);
         startActivity(intent);
         finish();
     }
+
+
 
     private void getUser(){
         loading(true);
@@ -77,31 +80,32 @@ public class UserActivity extends AppCompatActivity implements UserListener{
                 .addOnCompleteListener(task -> {
                     loading(false);
                     String currentUserId = preferenceManager.getString("userId");
-                    if(task.isSuccessful()&& task.getResult()!=null){
+                    if (task.isSuccessful() && task.getResult() != null) {
                         List<User> users = new ArrayList<>();
-                        for (QueryDocumentSnapshot queryDocumentSnapshot: task.getResult()){
-                            if(currentUserId.equals(queryDocumentSnapshot.getId())){
+                        for (QueryDocumentSnapshot queryDocumentSnapshot : task.getResult()) {
+                            if (currentUserId.equals(queryDocumentSnapshot.getId())) {
                                 continue;
                             }
-                            User user=new User();
-                            user.userId=queryDocumentSnapshot.getId();;
-                            user.name=queryDocumentSnapshot.getString("name");
-                            user.email=queryDocumentSnapshot.getString("email");
-                            user.image=queryDocumentSnapshot.getString("image");
-                            user.token=queryDocumentSnapshot.getString("fcmtoken");
+                            User user = new User();
+                            user.userId = queryDocumentSnapshot.getId();
+                            user.name = queryDocumentSnapshot.getString("name") != null ? queryDocumentSnapshot.getString("name") : "Unknown";
+                            user.email = queryDocumentSnapshot.getString("email") != null ? queryDocumentSnapshot.getString("email") : "Unknown";
+                            user.image = queryDocumentSnapshot.getString("image") != null ? queryDocumentSnapshot.getString("image") : "";
+                            user.token = queryDocumentSnapshot.getString("fcmtoken")!= null ? queryDocumentSnapshot.getString("fcmtoken") : "";
                             users.add(user);
                         }
-                        if(!users.isEmpty()){
-                            UsersAdapter usersAdapter=new UsersAdapter(users,this);
+                        if (!users.isEmpty()) {
+                            UsersAdapter usersAdapter = new UsersAdapter(users, this);
                             usersRecyclerView.setLayoutManager(new LinearLayoutManager(this));
                             usersRecyclerView.setAdapter(usersAdapter);
                             usersRecyclerView.setVisibility(View.VISIBLE);
-                        } else{
+                        } else {
                             showErrorMessage();
                         }
-                    } else{
+                    } else {
                         showErrorMessage();
                     }
+
                 });
     }
     @Override

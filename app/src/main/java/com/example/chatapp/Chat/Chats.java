@@ -1,6 +1,7 @@
 package com.example.chatapp.Chat;
 
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.net.Uri;
 import android.os.Bundle;
 import android.util.Log;
@@ -38,6 +39,8 @@ import java.util.Map;
 
 import com.cloudinary.android.MediaManager;
 
+import models.User;
+
 public class Chats extends AppCompatActivity {
 
     private RecyclerView recyclerViewMessages;
@@ -45,12 +48,12 @@ public class Chats extends AppCompatActivity {
     private List<Message> messageList;
     private EditText MessageInput;
     private Button sendButton;
-    //private String currentUserId;
-    public static String currentUserId;
+    private String currentUserId;
+
 
     private TextView HeaderText;
-    //private String friendId;
-    public static String friendId;
+    private String friendId;
+
 
     private String friendName;
     private String chatRoomId;
@@ -72,7 +75,25 @@ public class Chats extends AppCompatActivity {
         setContentView(R.layout.activity_chats);
         long messageTimestamp = getIntent().getLongExtra("messageTimestamp", -1);
 
+        FirebaseUser currentUser = FirebaseAuth.getInstance().getCurrentUser();
+        if (currentUser != null) {
+            currentUserId = currentUser.getUid();
+//            fetchCurrentUsername(); // Fetch the username from Firestore
+        } else {
+            Toast.makeText(this, "User not authenticated. Please log in.", Toast.LENGTH_SHORT).show();
+        }
 
+
+        friendId = getIntent().getStringExtra("friendId");
+        String friendName = getIntent().getStringExtra("friendName");
+
+        if (currentUserId == null || friendId == null) {
+
+            Log.d("Chats", "currentUserId:"+ currentUserId);
+            Log.d("Chats", "friendId:"+ friendId);
+            Log.d("Chats", "friendName:"+ friendName);
+            return;
+        }
 
         if (!isMediaManagerInitialized) {
             Map<String, String> config = new HashMap<>();
@@ -83,8 +104,7 @@ public class Chats extends AppCompatActivity {
             isMediaManagerInitialized = true;  // Mark as initialized
         }
 
-        currentUserId = "2";
-        friendId="1";
+//
         createOrGetChatRoom();
         // Initialize views
         recyclerViewMessages = findViewById(R.id.recyclerViewMessages);
@@ -95,15 +115,7 @@ public class Chats extends AppCompatActivity {
         imageViewMessage = findViewById(R.id.selectedImageView); // Updated ImageView ID
         infoChatBtn = findViewById(R.id.infoChatBtn);
 
-        // Get intent data
-        //friendId = getIntent().getStringExtra("friendId");
-        //friendName = getIntent().getStringExtra("friendName");
 
-        if (friendId == null) {
-            Toast.makeText(this, "Friend ID is missing.", Toast.LENGTH_SHORT).show();
-            finish();
-            return;
-        }
 
         HeaderText.setText("Chat with: " + friendName);
         messageList = new ArrayList<>();
@@ -111,13 +123,6 @@ public class Chats extends AppCompatActivity {
         recyclerViewMessages.setLayoutManager(new LinearLayoutManager(this));
         recyclerViewMessages.setAdapter(MessageAdapter);
 
-//        FirebaseUser currentUser = FirebaseAuth.getInstance().getCurrentUser();
-//        if (currentUser != null) {
-//            currentUserId = currentUser.getUid();
-//            fetchCurrentUsername(); // Fetch the username from Firestore
-//        } else {
-//            Toast.makeText(this, "User not authenticated. Please log in.", Toast.LENGTH_SHORT).show();
-//        }
 
         // Image selection for sending images
         chooseImg.setOnClickListener(v -> {
@@ -128,7 +133,9 @@ public class Chats extends AppCompatActivity {
         //set up the infoChat button click
         infoChatBtn.setOnClickListener(v -> {
             Intent intent = new Intent(Chats.this, InfoChat.class);
-            intent.putExtra("chatRoomId", chatRoomId);  // Truyền chatRoomId từ trang Chats sang InfoChat
+            intent.putExtra("chatRoomId", chatRoomId);
+            intent.putExtra("friendId", friendId);
+            intent.putExtra("friendName", friendName);
             startActivity(intent);
 
         });
@@ -160,30 +167,32 @@ public class Chats extends AppCompatActivity {
         });
     }
 
-    private void fetchCurrentUsername() {
-        FirebaseFirestore db = FirebaseFirestore.getInstance();
-        db.collection("users").document(currentUserId).get()
-                .addOnCompleteListener(task -> {
-                    if (task.isSuccessful()) {
-                        DocumentSnapshot document = task.getResult();
-                        if (document.exists() && document.contains("username")) {
-                            currentUsername = document.getString("username");
-                            createOrGetChatRoom();
-                        } else {
-                            Toast.makeText(this, "Display name is not set. Please set it in your profile.", Toast.LENGTH_SHORT).show();
-                        }
-                    } else {
-                        Toast.makeText(this, "Error fetching username: " + task.getException().getMessage(), Toast.LENGTH_SHORT).show();
-                    }
-                });
-    }
-
+//    private void fetchCurrentUsername() {
+//        FirebaseFirestore db = FirebaseFirestore.getInstance();
+//        db.collection("users").document(currentUserId).get()
+//                .addOnCompleteListener(task -> {
+//                    if (task.isSuccessful()) {
+//                        DocumentSnapshot document = task.getResult();
+//                        if (document.exists() && document.contains("name")) {
+//                            currentUsername = document.getString("name");
+//                            createOrGetChatRoom();
+//                        } else {
+//                            Toast.makeText(this, "Display name is not set. Please set it in your profile.", Toast.LENGTH_SHORT).show();
+//                        }
+//                    } else {
+//                        Toast.makeText(this, "Error fetching username: " + task.getException().getMessage(), Toast.LENGTH_SHORT).show();
+//                    }
+//                });
+//    }
+//
 
     private void createOrGetChatRoom() {
-        if (currentUserId == null) return;
+
+
         chatRoomId = currentUserId.compareTo(friendId) < 0 ?
                 currentUserId + "_" + friendId :
                 friendId + "_" + currentUserId;
+
         DatabaseReference chatRoomRef = FirebaseDatabase.getInstance().getReference("chatRooms").child(chatRoomId);
         chatRoomRef.addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
@@ -204,12 +213,14 @@ public class Chats extends AppCompatActivity {
                     loadMessages(chatRoomId);
                 }
             }
+
             @Override
             public void onCancelled(@NonNull DatabaseError databaseError) {
                 Toast.makeText(Chats.this, "Error checking chat room: " + databaseError.getMessage(), Toast.LENGTH_SHORT).show();
             }
         });
     }
+
 
 
     @Override
@@ -254,6 +265,7 @@ public class Chats extends AppCompatActivity {
     private void sendMessage(String chatRoomId, String senderId, String messageContent, String senderName, String imageUri) {
         if (chatRoomId == null) {
             Toast.makeText(this, "Chat room ID is null.", Toast.LENGTH_SHORT).show();
+            Log.d("fID","friendID:" + friendId +", currentUserId: " + currentUserId);
             return;
         }
         DatabaseReference messagesRef = FirebaseDatabase.getInstance().getReference("chatRooms").child(chatRoomId).child("messages");
@@ -319,6 +331,37 @@ public class Chats extends AppCompatActivity {
 
 
 
+    //   private void loadMessages(String chatRoomId) {
+//    DatabaseReference messagesRef = FirebaseDatabase.getInstance().getReference("chatRooms").child(chatRoomId).child("messages");
+//
+//    messagesListener = messagesRef.addValueEventListener(new ValueEventListener() {
+//        @Override
+//        public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
+//            messageList.clear();
+//            for (DataSnapshot messageSnapshot : dataSnapshot.getChildren()) {
+//                Message message = messageSnapshot.getValue(Message.class);
+//                if (message != null) {
+//                    messageList.add(message);
+//                }
+//            }
+//
+//            MessageAdapter.notifyDataSetChanged();
+//
+//            // Only scroll after messages are loaded
+//            if (scrollToTimestamp != null) {
+//                scrollToMessage(scrollToTimestamp);
+//                scrollToTimestamp = null;
+//            } else if (!messageList.isEmpty()) {
+//                recyclerViewMessages.scrollToPosition(messageList.size() - 1);
+//            }
+//        }
+//
+//        @Override
+//        public void onCancelled(@NonNull DatabaseError databaseError) {
+//            Toast.makeText(Chats.this, "Error loading messages: " + databaseError.getMessage(), Toast.LENGTH_SHORT).show();
+//        }
+//    });
+//}
     private void loadMessages(String chatRoomId) {
         DatabaseReference messagesRef = FirebaseDatabase.getInstance().getReference("chatRooms").child(chatRoomId).child("messages");
 
@@ -335,6 +378,7 @@ public class Chats extends AppCompatActivity {
 
                 MessageAdapter.notifyDataSetChanged();
 
+                // Only scroll after messages are loaded
                 if (scrollToTimestamp != null) {
                     scrollToMessage(scrollToTimestamp);
                     scrollToTimestamp = null;

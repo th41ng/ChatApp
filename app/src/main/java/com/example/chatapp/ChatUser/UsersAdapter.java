@@ -1,5 +1,7 @@
 package com.example.chatapp.ChatUser;
 
+import android.content.Context;
+import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.util.Base64;
@@ -13,14 +15,18 @@ import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.appcompat.view.menu.MenuView;
+import androidx.constraintlayout.widget.ConstraintLayout;
 import androidx.core.content.ContextCompat;
 import androidx.recyclerview.widget.RecyclerView;
 
+import com.example.chatapp.Chat.Chats;
 import com.example.chatapp.R;
+import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.firestore.FirebaseFirestore;
 
+import java.net.Authenticator;
 import java.util.List;
 
 import models.User;
@@ -31,46 +37,55 @@ public class UsersAdapter extends RecyclerView.Adapter<UsersAdapter.UserViewHold
     TextView textName;
     TextView textEmail;
     ImageView imageProfile;
+    private ConstraintLayout lastChatView;
     private Button btnAddFriend;
     public UsersAdapter(List<User> users, UserListener userListener) {
         this.users = users;
         this.userListener = userListener;
     }
+
     class UserViewHolder extends RecyclerView.ViewHolder {
         UserViewHolder(View itemView) {
             super(itemView);
             textName = itemView.findViewById(R.id.textName);
             textEmail = itemView.findViewById(R.id.textEmail);
             imageProfile = itemView.findViewById(R.id.imageProfile);
-            btnAddFriend=itemView.findViewById(R.id.btnAddFriend);
+            btnAddFriend = itemView.findViewById(R.id.btnAddFriend);
+            lastChatView = itemView.findViewById(R.id.lastChatView);
         }
 
         void setUserData(User user) {
             textName.setText(user.name);
             textEmail.setText(user.email);
-           // imageProfile.setImageBitmap(getUserImage(user.image));
-            updateButtonState( user.isFriendRequestSent(), btnAddFriend);
+            imageProfile.setImageBitmap(getUserImage(user.image));
+
+            updateButtonState(user.isFriendRequestSent(), btnAddFriend);
+
+
+            textName.setOnClickListener(v -> userListener.onUserClicked(user));
+
+
+            // Handle Add/Remove Friend button click
             btnAddFriend.setOnClickListener(v -> {
                 int position = getBindingAdapterPosition();
                 if (position == RecyclerView.NO_POSITION) {
-                    return; // Thoát nếu vị trí không hợp lệ
+                    return; // Exit if position is invalid
                 }
                 User currentUser = users.get(position);
                 if (currentUser.isFriendRequestSent()) {
                     userListener.onBtnRemoveFriend(currentUser);
-                    currentUser.setFriendRequestSent(false); // Cập nhật trạng thái
+                    currentUser.setFriendRequestSent(false); // Update state
                     updateButtonState(false, btnAddFriend);
                 } else {
                     userListener.onBtnAddFriend(currentUser);
-                    currentUser.setFriendRequestSent(true); // Cập nhật trạng thái
+                    currentUser.setFriendRequestSent(true); // Update state
                     updateButtonState(true, btnAddFriend);
                 }
                 notifyItemChanged(position);
             });
-            itemView.setOnClickListener(v -> userListener.onUserClicked(user));
-
         }
     }
+
 
     private void updateButtonState(boolean isFriendRequestSent, Button btnAddFriend) {
         if (isFriendRequestSent) {
@@ -103,5 +118,6 @@ public class UsersAdapter extends RecyclerView.Adapter<UsersAdapter.UserViewHold
     public int getItemCount() {
         return users.size();
     }
+
 
 }

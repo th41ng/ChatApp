@@ -12,6 +12,8 @@ import com.bumptech.glide.Glide;
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 import com.example.chatapp.R;
+import com.google.firebase.auth.FirebaseAuth;
+
 import java.util.List;
 
 public class MessageAdapter extends RecyclerView.Adapter<MessageAdapter.ViewHolder> {
@@ -25,6 +27,8 @@ public class MessageAdapter extends RecyclerView.Adapter<MessageAdapter.ViewHold
         this.messageList = messageList;
         this.highlightedPosition = -1;
     }
+
+
 
     public void highlightMessage(int position) {
         // Nếu có tin nhắn đã được highlight trước đó, reset lại
@@ -59,13 +63,12 @@ public class MessageAdapter extends RecyclerView.Adapter<MessageAdapter.ViewHold
     @Override
     public void onBindViewHolder(@NonNull ViewHolder holder, int position) {
         Message message = messageList.get(position);
-        // Set background color based on whether it's highlighted
 
-//        String currentUserId = FirebaseAuth.getInstance().getCurrentUser() != null
-//                ? FirebaseAuth.getInstance().getCurrentUser().getUid()
-//                : null;
+        String currentUserId = FirebaseAuth.getInstance().getCurrentUser() != null
+                ? FirebaseAuth.getInstance().getCurrentUser().getUid()
+                : null;
         String senderId = message.getSenderId();
-        String currentUserId ="2";
+
         // Highlight message if it's the highlighted position
         if (position == highlightedPosition) {
             holder.itemView.setBackgroundColor(Color.YELLOW); // Highlight color
