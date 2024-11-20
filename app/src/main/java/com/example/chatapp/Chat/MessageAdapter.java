@@ -16,20 +16,22 @@ import com.google.firebase.auth.FirebaseAuth;
 
 import java.util.List;
 
+import models.Message;
+
 public class MessageAdapter extends RecyclerView.Adapter<MessageAdapter.ViewHolder> {
 
-    private final Context context;
-    private final List<Message> messageList;
-    private int highlightedPosition;
+    private final Context context; // Ngữ cảnh ứng dụng
+    private final List<Message> messageList; // Danh sách tin nhắn
+    private int highlightedPosition; // Vị trí của tin nhắn được highlight
 
+    // Constructor khởi tạo adapter với ngữ cảnh và danh sách tin nhắn
     public MessageAdapter(Context context, List<Message> messageList) {
         this.context = context;
         this.messageList = messageList;
-        this.highlightedPosition = -1;
+        this.highlightedPosition = -1; // Không có tin nhắn nào được highlight khi bắt đầu
     }
 
-
-
+    // Phương thức dùng để highlight một tin nhắn tại vị trí nhất định
     public void highlightMessage(int position) {
         // Nếu có tin nhắn đã được highlight trước đó, reset lại
         int previousHighlightedPosition = highlightedPosition;
@@ -39,7 +41,6 @@ public class MessageAdapter extends RecyclerView.Adapter<MessageAdapter.ViewHold
         if (previousHighlightedPosition != -1) {
             notifyItemChanged(previousHighlightedPosition);  // Reset tin nhắn trước
         }
-
         notifyItemChanged(position);  // Highlight tin nhắn hiện tại
 
         // Đặt một delay để bỏ highlight sau 3 giây
@@ -50,76 +51,85 @@ public class MessageAdapter extends RecyclerView.Adapter<MessageAdapter.ViewHold
         }, 3000); // Highlight trong 3 giây
     }
 
-
-
+    // Tạo ViewHolder cho mỗi item trong RecyclerView
     @NonNull
     @Override
     public ViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
+        // Inflate layout chat_item_message cho mỗi item
         View view = LayoutInflater.from(context).inflate(R.layout.chat_item_message, parent, false);
-        return new ViewHolder(view);
+        return new ViewHolder(view); // Trả về ViewHolder mới
     }
 
-
+    // Liên kết dữ liệu (tin nhắn) với view
     @Override
     public void onBindViewHolder(@NonNull ViewHolder holder, int position) {
-        Message message = messageList.get(position);
+        Message message = messageList.get(position); // Lấy tin nhắn tại vị trí hiện tại
 
+        // Lấy ID người dùng hiện tại
         String currentUserId = FirebaseAuth.getInstance().getCurrentUser() != null
                 ? FirebaseAuth.getInstance().getCurrentUser().getUid()
                 : null;
-        String senderId = message.getSenderId();
+        String senderId = message.getSenderId(); // Lấy ID người gửi tin nhắn
 
-        // Highlight message if it's the highlighted position
+        // Highlight tin nhắn nếu là tin nhắn tại vị trí được highlight
         if (position == highlightedPosition) {
-            holder.itemView.setBackgroundColor(Color.YELLOW); // Highlight color
+            holder.itemView.setBackgroundColor(Color.YELLOW); // Màu nền khi highlight
         } else {
-            holder.itemView.setBackgroundColor(Color.TRANSPARENT); // Default color
+            holder.itemView.setBackgroundColor(Color.TRANSPARENT); // Màu nền mặc định
         }
-        if (message.isImage()) {
-            // Hide text views
+
+        if (message.isImage()) { // Nếu tin nhắn là hình ảnh
+            // Ẩn các TextViews
             holder.messageTextViewSender.setVisibility(View.GONE);
             holder.messageTextViewReceiver.setVisibility(View.GONE);
-            // Load image based on sender
+
+            // Hiển thị ảnh tùy thuộc vào người gửi
             if (senderId.equals(currentUserId)) {
                 holder.imageViewMessageSender.setVisibility(View.VISIBLE);
                 holder.imageViewMessageReceiver.setVisibility(View.GONE);
-                Glide.with(context).load(message.getImageUri()).into(holder.imageViewMessageSender);
+                Glide.with(context).load(message.getImageUri()).into(holder.imageViewMessageSender); // Tải ảnh của người gửi
             } else {
                 holder.imageViewMessageSender.setVisibility(View.GONE);
                 holder.imageViewMessageReceiver.setVisibility(View.VISIBLE);
-                Glide.with(context).load(message.getImageUri()).into(holder.imageViewMessageReceiver);
+                Glide.with(context).load(message.getImageUri()).into(holder.imageViewMessageReceiver); // Tải ảnh của người nhận
             }
-        } else {
-            // Hide image views
+        } else { // Nếu tin nhắn là văn bản
+            // Ẩn các ImageViews
             holder.imageViewMessageSender.setVisibility(View.GONE);
             holder.imageViewMessageReceiver.setVisibility(View.GONE);
-            // Load text message based on sender
+
+            // Hiển thị tin nhắn văn bản tùy thuộc vào người gửi
             if (senderId.equals(currentUserId)) {
                 holder.messageTextViewSender.setText(message.getContent());
-                holder.messageTextViewSender.setVisibility(View.VISIBLE);
-                holder.messageTextViewReceiver.setVisibility(View.GONE);
+                holder.messageTextViewSender.setVisibility(View.VISIBLE); // Hiển thị tin nhắn của người gửi
+                holder.messageTextViewReceiver.setVisibility(View.GONE); // Ẩn tin nhắn của người nhận
             } else {
                 holder.messageTextViewReceiver.setText(message.getContent());
-                holder.messageTextViewReceiver.setVisibility(View.VISIBLE);
-                holder.messageTextViewSender.setVisibility(View.GONE);
+                holder.messageTextViewReceiver.setVisibility(View.VISIBLE); // Hiển thị tin nhắn của người nhận
+                holder.messageTextViewSender.setVisibility(View.GONE); // Ẩn tin nhắn của người gửi
             }
         }
     }
 
-
+    // Trả về số lượng tin nhắn trong danh sách
     @Override
     public int getItemCount() {
         return messageList.size();
     }
+
+    // Trả về danh sách tin nhắn
     public List<Message> getMessageList() {
         return messageList;
     }
 
+    // ViewHolder giữ các tham chiếu đến các View trong mỗi item tin nhắn
     static class ViewHolder extends RecyclerView.ViewHolder {
-        ImageView imageViewMessageSender;
-        ImageView imageViewMessageReceiver;
-        TextView messageTextViewSender;
-        TextView messageTextViewReceiver;
+        ImageView imageViewMessageSender; // ImageView cho tin nhắn gửi
+        ImageView imageViewMessageReceiver; // ImageView cho tin nhắn nhận
+        TextView messageTextViewSender; // TextView cho tin nhắn gửi
+        TextView messageTextViewReceiver; // TextView cho tin nhắn nhận
+
+        // Constructor của ViewHolder, khởi tạo các tham chiếu đến View trong item
         ViewHolder(View itemView) {
             super(itemView);
             imageViewMessageSender = itemView.findViewById(R.id.imageViewMessageSender);
@@ -128,5 +138,4 @@ public class MessageAdapter extends RecyclerView.Adapter<MessageAdapter.ViewHold
             messageTextViewReceiver = itemView.findViewById(R.id.messageTextViewReceiver);
         }
     }
-
 }

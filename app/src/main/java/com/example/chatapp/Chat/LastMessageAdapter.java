@@ -15,14 +15,13 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import com.bumptech.glide.Glide;
 import com.example.chatapp.R;
-import com.example.chatapp.Re_Sign.LoginActivity;
 
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.List;
 import java.util.Locale;
 
-import models.User;
+import models.Message;
 
 public class LastMessageAdapter extends RecyclerView.Adapter<LastMessageAdapter.ViewHolder> {
     private final Context context;
@@ -37,7 +36,7 @@ public class LastMessageAdapter extends RecyclerView.Adapter<LastMessageAdapter.
     @NonNull
     @Override
     public LastMessageAdapter.ViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
-        View view = LayoutInflater.from(context).inflate(R.layout.item_lastmessage, parent, false);
+        View view = LayoutInflater.from(context).inflate(R.layout.chat_item_lastmessage, parent, false);
         return new ViewHolder(view);
     }
 

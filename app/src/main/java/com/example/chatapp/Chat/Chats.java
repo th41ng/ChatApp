@@ -1,14 +1,15 @@
 package com.example.chatapp.Chat;
 
 import android.content.Intent;
-import android.content.SharedPreferences;
 import android.net.Uri;
 import android.os.Bundle;
+import android.os.Handler;
+import android.text.Editable;
+import android.text.TextWatcher;
 import android.util.Log;
 import android.view.View;
-import android.view.ViewTreeObserver;
-import android.widget.Button;
 import android.widget.EditText;
+import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -19,9 +20,8 @@ import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.cloudinary.android.callback.ErrorInfo;
+import com.example.chatapp.CloudinaryManager;
 import com.example.chatapp.R;
-import com.example.chatapp.Re_Sign.LoginActivity;
-import com.example.chatapp.Re_Sign.RegisterActivity;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.database.DataSnapshot;
@@ -29,8 +29,6 @@ import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
-import com.google.firebase.firestore.DocumentSnapshot;
-import com.google.firebase.firestore.FirebaseFirestore;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -39,42 +37,53 @@ import java.util.Map;
 
 import com.cloudinary.android.MediaManager;
 
-import models.User;
-
+import models.Message;
+//Trang nhắn tin chính
 public class Chats extends AppCompatActivity {
 
     private RecyclerView recyclerViewMessages;
     private MessageAdapter MessageAdapter;
     private List<Message> messageList;
     private EditText MessageInput;
-    private Button sendButton;
+    private ImageButton sendButton;
     private String currentUserId;
-
-
-    private TextView HeaderText;
+    private TextView chatwith;
     private String friendId;
-
-
     private String friendName;
     private String chatRoomId;
     private String currentUsername;
     private ImageView imageViewMessage;
-    private Button chooseImg;
+    private ImageButton chooseImg;
     private static final int IMAGE_PICK_CODE = 1000;
     private Uri selectedImageUri;
     private ValueEventListener messagesListener;
-    private Button infoChatBtn;
-    //
+    private ImageButton infoChatBtn;
     private Long scrollToTimestamp = null;
-    // Static variable to track initialization
     private static boolean isMediaManagerInitialized = false;
+    private TextView istyping;
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_chats);
-        long messageTimestamp = getIntent().getLongExtra("messageTimestamp", -1);
+        setContentView(R.layout.chat_activity_main_chat);
 
+        // Initialize views
+        recyclerViewMessages = findViewById(R.id.recyclerViewMessages);
+        MessageInput = findViewById(R.id.MessageInput);
+        sendButton = findViewById(R.id.sendButton);
+        chatwith = findViewById(R.id.chatwith);
+        chooseImg = findViewById(R.id.chooseImg);
+        imageViewMessage = findViewById(R.id.selectedImageView); // Updated ImageView ID
+        infoChatBtn = findViewById(R.id.infoChatBtn);
+        istyping=findViewById(R.id.istyping);
+
+        messageList = new ArrayList<>();
+        MessageAdapter = new MessageAdapter(this, messageList);
+        recyclerViewMessages.setLayoutManager(new LinearLayoutManager(this));
+        recyclerViewMessages.setAdapter(MessageAdapter);
+
+        //Lấy id người dùng hện tại
         FirebaseUser currentUser = FirebaseAuth.getInstance().getCurrentUser();
         if (currentUser != null) {
             currentUserId = currentUser.getUid();
@@ -82,49 +91,23 @@ public class Chats extends AppCompatActivity {
         } else {
             Toast.makeText(this, "User not authenticated. Please log in.", Toast.LENGTH_SHORT).show();
         }
-
+        //kết thúc lấy id người dùng hiện tại
 
         friendId = getIntent().getStringExtra("friendId");
-        String friendName = getIntent().getStringExtra("friendName");
+        friendName = getIntent().getStringExtra("friendName");
 
-        if (currentUserId == null || friendId == null) {
+        chatwith.setText("Chat with: " + friendName);
+//        if (currentUserId == null || friendId == null) {
+//            Log.d("Chats", "currentUserId:"+ currentUserId);
+//            Log.d("Chats", "friendId:"+ friendId);
+//            Log.d("Chats", "friendName:"+ friendName);
+//            return;
+//        }
 
-            Log.d("Chats", "currentUserId:"+ currentUserId);
-            Log.d("Chats", "friendId:"+ friendId);
-            Log.d("Chats", "friendName:"+ friendName);
-            return;
-        }
-
-        if (!isMediaManagerInitialized) {
-            Map<String, String> config = new HashMap<>();
-            config.put("cloud_name", "ddskv3qix");
-            config.put("api_key", "237429289958929");
-            config.put("api_secret", "72Fe5rWNVv0_3E8fAHa9lvZ2zGk");
-            MediaManager.init(this, config);
-            isMediaManagerInitialized = true;  // Mark as initialized
-        }
-
-//
+        CloudinaryManager.initialize(this);
         createOrGetChatRoom();
-        // Initialize views
-        recyclerViewMessages = findViewById(R.id.recyclerViewMessages);
-        MessageInput = findViewById(R.id.MessageInput);
-        sendButton = findViewById(R.id.sendButton);
-        HeaderText = findViewById(R.id.HeaderText);
-        chooseImg = findViewById(R.id.chooseImg);
-        imageViewMessage = findViewById(R.id.selectedImageView); // Updated ImageView ID
-        infoChatBtn = findViewById(R.id.infoChatBtn);
 
-
-
-        HeaderText.setText("Chat with: " + friendName);
-        messageList = new ArrayList<>();
-        MessageAdapter = new MessageAdapter(this, messageList);
-        recyclerViewMessages.setLayoutManager(new LinearLayoutManager(this));
-        recyclerViewMessages.setAdapter(MessageAdapter);
-
-
-        // Image selection for sending images
+        //Code sự kiện onclick
         chooseImg.setOnClickListener(v -> {
             Intent intent = new Intent(Intent.ACTION_PICK);
             intent.setType("image/*");
@@ -137,18 +120,7 @@ public class Chats extends AppCompatActivity {
             intent.putExtra("friendId", friendId);
             intent.putExtra("friendName", friendName);
             startActivity(intent);
-
         });
-        if (messageTimestamp != -1) {
-            Log.d("Chats", "Received timestamp: " + messageTimestamp);
-
-            // Store the timestamp in a variable for use later (e.g., scroll to message)
-            scrollToTimestamp = messageTimestamp;
-            // Load messages or perform the desired action
-            loadMessages(chatRoomId);
-        } else {
-            Log.d("Chats", "No valid timestamp received.");
-        }
         // Set up the send button click listener
         sendButton.setOnClickListener(v -> {
             String messageContent = MessageInput.getText().toString().trim();
@@ -165,34 +137,52 @@ public class Chats extends AppCompatActivity {
                 Toast.makeText(Chats.this, "Please enter a message or select an image.", Toast.LENGTH_SHORT).show();
             }
         });
+        //kết thúc sự kiện onclick
+
+        //Nhận timestamp để cuộn tới
+        long messageTimestamp = getIntent().getLongExtra("messageTimestamp", -1);
+        if (messageTimestamp != -1) {
+            Log.d("Chats", "Received timestamp: " + messageTimestamp);
+            // Store the timestamp in a variable for use later (e.g., scroll to message)
+            scrollToTimestamp = messageTimestamp;
+            // Load messages or perform the desired action
+            loadMessages(chatRoomId);
+        } else {
+            Log.d("Chats", "No valid timestamp received.");
+        }
+        //kết thuúc nhận timestamp để cuộn tới
+
+
+        // Thêm TextWatcher cho ô tin nhắn để kiểm tra trạng thái "đang gõ"
+        MessageInput.addTextChangedListener(new TextWatcher() {
+            private Handler handler = new Handler();
+            private Runnable stopTyping = () -> setTypingStatus(false);
+            @Override
+            public void beforeTextChanged(CharSequence s, int start, int count, int after) {}
+            @Override
+            public void onTextChanged(CharSequence s, int start, int before, int count) {
+                // Kiểm tra nếu ô tin nhắn không trống thì gọi setTypingStatus(true)
+                if (s.length() > 0) {
+                    setTypingStatus(true); // Người dùng đang gõ
+                    handler.removeCallbacks(stopTyping);
+                } else {
+                    setTypingStatus(false); // Nếu ô tin nhắn trống thì dừng trạng thái "đang gõ"
+                }
+                //handler.removeCallbacks(stopTyping);
+                //handler.postDelayed(stopTyping, 2000); // Dừng sau 2 giây không gõ
+            }
+            @Override
+            public void afterTextChanged(Editable s) {}
+        });
+        listenForTypingStatus();
+        //kết thúc TextWatcher cho ô tin nhắn để kiểm tra trạng thái "đang gõ"
     }
 
-//    private void fetchCurrentUsername() {
-//        FirebaseFirestore db = FirebaseFirestore.getInstance();
-//        db.collection("users").document(currentUserId).get()
-//                .addOnCompleteListener(task -> {
-//                    if (task.isSuccessful()) {
-//                        DocumentSnapshot document = task.getResult();
-//                        if (document.exists() && document.contains("name")) {
-//                            currentUsername = document.getString("name");
-//                            createOrGetChatRoom();
-//                        } else {
-//                            Toast.makeText(this, "Display name is not set. Please set it in your profile.", Toast.LENGTH_SHORT).show();
-//                        }
-//                    } else {
-//                        Toast.makeText(this, "Error fetching username: " + task.getException().getMessage(), Toast.LENGTH_SHORT).show();
-//                    }
-//                });
-//    }
-//
 
     private void createOrGetChatRoom() {
-
-
         chatRoomId = currentUserId.compareTo(friendId) < 0 ?
                 currentUserId + "_" + friendId :
                 friendId + "_" + currentUserId;
-
         DatabaseReference chatRoomRef = FirebaseDatabase.getInstance().getReference("chatRooms").child(chatRoomId);
         chatRoomRef.addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
@@ -213,14 +203,12 @@ public class Chats extends AppCompatActivity {
                     loadMessages(chatRoomId);
                 }
             }
-
             @Override
             public void onCancelled(@NonNull DatabaseError databaseError) {
                 Toast.makeText(Chats.this, "Error checking chat room: " + databaseError.getMessage(), Toast.LENGTH_SHORT).show();
             }
         });
     }
-
 
 
     @Override
@@ -233,7 +221,6 @@ public class Chats extends AppCompatActivity {
                 selectedImageUri = data.getData();
                 imageViewMessage.setImageURI(selectedImageUri);
                 imageViewMessage.setVisibility(View.VISIBLE);
-
                 // Ẩn ảnh khi người dùng nhấn vào nó
                 imageViewMessage.setOnClickListener(v -> {
                     imageViewMessage.setVisibility(View.GONE);
@@ -262,6 +249,8 @@ public class Chats extends AppCompatActivity {
             }
         }, 400);
     }
+
+    //Bắt đầu code gửi tin nhắn
     private void sendMessage(String chatRoomId, String senderId, String messageContent, String senderName, String imageUri) {
         if (chatRoomId == null) {
             Toast.makeText(this, "Chat room ID is null.", Toast.LENGTH_SHORT).show();
@@ -291,16 +280,11 @@ public class Chats extends AppCompatActivity {
         }
     }
     private void uploadImageToCloudinary(String imageUri, OnImageUploadedListener listener) {
-        // Upload the image to Cloudinary
         MediaManager.get().upload(Uri.parse(imageUri)).callback(new com.cloudinary.android.callback.UploadCallback() {
             @Override
-            public void onStart(String requestId) {
-                // You can show a progress bar here if needed
-            }
+            public void onStart(String requestId) {}
             @Override
-            public void onProgress(String requestId, long bytes, long totalBytes) {
-                // Update progress bar if needed
-            }
+            public void onProgress(String requestId, long bytes, long totalBytes) {}
             @Override
             public void onSuccess(String requestId, Map resultData) {
                 String imageUrl = (String) resultData.get("secure_url"); // Get the uploaded image URL (https)
@@ -311,9 +295,7 @@ public class Chats extends AppCompatActivity {
                 listener.onImageUploaded(null); // If an error occurs, callback with null
             }
             @Override
-            public void onReschedule(String requestId, ErrorInfo error) {
-                // Handle reschedule if necessary
-            }
+            public void onReschedule(String requestId, ErrorInfo error) {}
         }).dispatch();
     }
     private void sendMessageToDatabase(DatabaseReference messagesRef, Map<String, Object> message) {
@@ -328,43 +310,12 @@ public class Chats extends AppCompatActivity {
     interface OnImageUploadedListener {
         void onImageUploaded(String imageUrl);
     }
+    //kết thúc code gửi tin nhắn
 
 
-
-    //   private void loadMessages(String chatRoomId) {
-//    DatabaseReference messagesRef = FirebaseDatabase.getInstance().getReference("chatRooms").child(chatRoomId).child("messages");
-//
-//    messagesListener = messagesRef.addValueEventListener(new ValueEventListener() {
-//        @Override
-//        public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
-//            messageList.clear();
-//            for (DataSnapshot messageSnapshot : dataSnapshot.getChildren()) {
-//                Message message = messageSnapshot.getValue(Message.class);
-//                if (message != null) {
-//                    messageList.add(message);
-//                }
-//            }
-//
-//            MessageAdapter.notifyDataSetChanged();
-//
-//            // Only scroll after messages are loaded
-//            if (scrollToTimestamp != null) {
-//                scrollToMessage(scrollToTimestamp);
-//                scrollToTimestamp = null;
-//            } else if (!messageList.isEmpty()) {
-//                recyclerViewMessages.scrollToPosition(messageList.size() - 1);
-//            }
-//        }
-//
-//        @Override
-//        public void onCancelled(@NonNull DatabaseError databaseError) {
-//            Toast.makeText(Chats.this, "Error loading messages: " + databaseError.getMessage(), Toast.LENGTH_SHORT).show();
-//        }
-//    });
-//}
+    //bắt đầu code load tin nhắn để hiện leên
     private void loadMessages(String chatRoomId) {
         DatabaseReference messagesRef = FirebaseDatabase.getInstance().getReference("chatRooms").child(chatRoomId).child("messages");
-
         messagesListener = messagesRef.addValueEventListener(new ValueEventListener() {
             @Override
             public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
@@ -375,9 +326,7 @@ public class Chats extends AppCompatActivity {
                         messageList.add(message);
                     }
                 }
-
                 MessageAdapter.notifyDataSetChanged();
-
                 // Only scroll after messages are loaded
                 if (scrollToTimestamp != null) {
                     scrollToMessage(scrollToTimestamp);
@@ -386,21 +335,58 @@ public class Chats extends AppCompatActivity {
                     recyclerViewMessages.scrollToPosition(messageList.size() - 1);
                 }
             }
-
             @Override
             public void onCancelled(@NonNull DatabaseError databaseError) {
                 Toast.makeText(Chats.this, "Error loading messages: " + databaseError.getMessage(), Toast.LENGTH_SHORT).show();
             }
         });
     }
+//kết thúc code load tin nhắn để hiện lên
 
+
+//Code kiểm tra trạng thái đang nhập
+    private void setTypingStatus(boolean isTyping) {
+        DatabaseReference typingStatusRef = FirebaseDatabase.getInstance()
+                .getReference("chatRooms")
+                .child(chatRoomId)
+                .child("typingStatus")
+                .child(currentUserId);
+        typingStatusRef.setValue(isTyping);
+    }
+    private void listenForTypingStatus() {
+        DatabaseReference typingStatusRef = FirebaseDatabase.getInstance()
+                .getReference("chatRooms")
+                .child(chatRoomId)
+                .child("typingStatus")
+                .child(friendId);
+        typingStatusRef.addValueEventListener(new ValueEventListener() {
+            @Override
+            public void onDataChange(@NonNull DataSnapshot snapshot) {
+                Boolean isTyping = snapshot.getValue(Boolean.class);
+                if (isTyping != null && isTyping) {
+                    istyping.setVisibility(View.VISIBLE);
+                }
+                else {
+                    istyping.setVisibility(View.GONE);
+                }
+            }
+            @Override
+            public void onCancelled(@NonNull DatabaseError error) {
+                Log.e("Chats", "Error listening for typing status: " + error.getMessage());
+            }
+        });
+    }
+//kết thúc kiểm tra trạng thái đang nhập
 
     @Override
     protected void onDestroy() {
         super.onDestroy();
         if (messagesListener != null) {
-            DatabaseReference messagesRef = FirebaseDatabase.getInstance().getReference("chatRooms").child(chatRoomId).child("messages");
+            DatabaseReference messagesRef = FirebaseDatabase.getInstance()
+                    .getReference("chatRooms").child(chatRoomId).child("messages");
             messagesRef.removeEventListener(messagesListener);
         }
+        // Dừng trạng thái typing
+        setTypingStatus(false);
     }
 }

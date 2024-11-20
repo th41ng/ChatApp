@@ -6,7 +6,6 @@ import android.view.View;
 import android.widget.ImageView;
 import android.widget.ProgressBar;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.recyclerview.widget.LinearLayoutManager;
@@ -22,7 +21,6 @@ import com.google.firebase.firestore.QueryDocumentSnapshot;
 import java.util.ArrayList;
 import java.util.List;
 
-import models.FriendRequest;
 import models.User;
 
 public class UserActivity extends AppCompatActivity implements UserListener{
@@ -36,7 +34,7 @@ public class UserActivity extends AppCompatActivity implements UserListener{
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_user);
+        setContentView(R.layout.friend_activity_user);
         preferenceManager = new PreferenceManager(getApplicationContext());
 
         textErrorMessage = findViewById(R.id.textErrorMessage);

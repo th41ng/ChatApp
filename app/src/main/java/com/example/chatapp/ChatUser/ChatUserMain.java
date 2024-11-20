@@ -8,8 +8,6 @@ import android.os.Bundle;
 import android.util.Base64;
 import android.util.Log;
 import android.view.MenuItem;
-import android.view.View;
-import android.widget.AdapterView;
 import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -21,15 +19,13 @@ import androidx.constraintlayout.widget.ConstraintLayout;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
-import com.example.chatapp.Chat.Chats;
 import com.example.chatapp.Chat.LastMessageAdapter;
-import com.example.chatapp.Chat.Message;
+import models.Message;
 import com.example.chatapp.PreferenceManager;
 import com.example.chatapp.R;
 import com.example.chatapp.Re_Sign.LoginActivity;
 import com.example.chatapp.UserHelper;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
-import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import com.google.android.material.navigation.NavigationBarView;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.database.DataSnapshot;
@@ -39,13 +35,10 @@ import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
 import com.google.firebase.firestore.DocumentReference;
 import com.google.firebase.firestore.FirebaseFirestore;
-import com.google.firebase.firestore.QueryDocumentSnapshot;
 import com.google.firebase.messaging.FirebaseMessaging;
 
 import java.util.ArrayList;
 import java.util.List;
-
-import models.User;
 
 public class ChatUserMain extends AppCompatActivity  {
     private PreferenceManager preferenceManager;
@@ -64,7 +57,7 @@ public class ChatUserMain extends AppCompatActivity  {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_chat_user_main);
+        setContentView(R.layout.friend_activity_chat_user_main);
 
         preferenceManager = new PreferenceManager(getApplicationContext());
 
@@ -79,11 +72,7 @@ public class ChatUserMain extends AppCompatActivity  {
     @Override
     protected void onResume() {
         super.onResume();
-        // Kiểm tra nếu đã tải tin nhắn thì không gọi lại fetchMessages()
-        if (!isMessagesFetched) {
-            fetchMessages(); // Gọi lại nếu chưa tải
-            isMessagesFetched = true;
-        }
+            fetchMessages();
     }
 
 

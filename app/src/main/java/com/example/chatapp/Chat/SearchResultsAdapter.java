@@ -8,11 +8,11 @@ import android.widget.TextView;
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 import com.example.chatapp.R;
-import java.text.SimpleDateFormat;
-import java.util.Date;
-import java.util.List;
-import java.util.Locale;
 
+import java.util.List;
+
+import models.Message;
+//Adapter để tìm kiếm thông tin
 public class SearchResultsAdapter extends RecyclerView.Adapter<SearchResultsAdapter.ViewHolder> {
 
     private List<Message> searchResults;
@@ -29,7 +29,7 @@ public class SearchResultsAdapter extends RecyclerView.Adapter<SearchResultsAdap
     @NonNull
     @Override
     public ViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
-        View view = LayoutInflater.from(parent.getContext()).inflate(R.layout.item_search_result, parent, false);
+        View view = LayoutInflater.from(parent.getContext()).inflate(R.layout.chat_item_search_result, parent, false);
         return new ViewHolder(view);
     }
 
@@ -42,7 +42,6 @@ public class SearchResultsAdapter extends RecyclerView.Adapter<SearchResultsAdap
 
         // Log binding process
         Log.d("SearchResultsAdapter", "Binding message: " + message.getContent());
-
         holder.itemView.setOnClickListener(v -> {
             if (onItemClickListener != null) {
                 onItemClickListener.onItemClick(message);

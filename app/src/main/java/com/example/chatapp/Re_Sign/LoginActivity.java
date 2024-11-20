@@ -13,9 +13,7 @@ import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
-import androidx.preference.Preference;
 
-import com.example.chatapp.Chat.Chats;
 import com.example.chatapp.ChatUser.ChatUserMain;
 import com.example.chatapp.ChatUser.PreferenceManager;
 import com.example.chatapp.R;
@@ -38,7 +36,7 @@ public class LoginActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_login);
+        setContentView(R.layout.user_activity_login);
 
         mAuth = FirebaseAuth.getInstance();
         emailedit = findViewById(R.id.email);

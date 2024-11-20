@@ -16,6 +16,9 @@ import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
 import java.util.ArrayList;
 import java.util.List;
+
+import models.Message;
+
 public class InfoChat extends AppCompatActivity {
     private DatabaseReference messagesRef;
     private List<Message> searchResults = new ArrayList<>();
@@ -25,7 +28,7 @@ public class InfoChat extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_info_chat);
+        setContentView(R.layout.chat_activity_info);
         // Nhận chatRoomId từ Intent
         chatRoomId = getIntent().getStringExtra("chatRoomId");
         if (chatRoomId == null) {

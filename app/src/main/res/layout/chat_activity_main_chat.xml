@@ -1,0 +1,130 @@
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+
+    <!-- Toolbar -->
+
+    <!-- RecyclerView to display messages -->
+
+    <!-- ImageView to display the selected image -->
+    <!-- Initially hidden -->
+
+    <!-- Input layout -->
+
+    <androidx.appcompat.widget.Toolbar
+        android:id="@+id/toolbar"
+        android:layout_width="match_parent"
+        android:layout_height="85dp"
+        android:background="#EDCBCB"
+        android:popupTheme="@style/ThemeOverlay.AppCompat.Light"
+        android:theme="?attr/actionBarTheme" />
+
+    <ImageView
+        android:id="@+id/avt"
+        android:layout_width="44dp"
+        android:layout_height="59dp"
+        android:layout_alignParentTop="true"
+        android:layout_alignParentEnd="true"
+        android:layout_marginTop="14dp"
+        android:layout_marginEnd="335dp"
+        app:srcCompat="@drawable/default_avatar" />
+
+    <ImageButton
+        android:id="@+id/infoChatBtn"
+        android:layout_width="59dp"
+        android:layout_height="60dp"
+        android:layout_alignParentTop="true"
+        android:layout_alignParentEnd="true"
+        android:layout_marginTop="12dp"
+        android:layout_marginEnd="6dp"
+        android:backgroundTint="#00FFFFFF"
+        android:src="@drawable/info"
+        android:text="!"
+        android:tint="#000000"
+        tools:src="@drawable/info" />
+
+    <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/recyclerViewMessages"
+        android:layout_width="match_parent"
+        android:layout_height="690dp"
+        android:layout_alignParentTop="true"
+        android:layout_alignParentBottom="true"
+        android:layout_marginTop="86dp"
+        android:layout_marginBottom="70dp" />
+
+    <ImageView
+        android:id="@+id/selectedImageView"
+        android:layout_width="160dp"
+        android:layout_height="190dp"
+        android:layout_above="@+id/inputLayout"
+        android:layout_alignParentStart="true"
+        android:layout_alignParentEnd="true"
+        android:layout_marginStart="128dp"
+        android:layout_marginEnd="123dp"
+        android:layout_marginBottom="78dp"
+        android:visibility="visible" />
+
+    <LinearLayout
+        android:id="@+id/inputLayout"
+        android:layout_width="match_parent"
+        android:layout_height="69dp"
+        android:layout_alignParentBottom="true"
+        android:layout_marginBottom="3dp"
+        android:orientation="horizontal">
+
+        <ImageButton
+            android:id="@+id/chooseImg"
+            android:layout_width="50dp"
+            android:layout_height="58dp"
+            android:layout_marginBottom="171dp"
+            android:layout_weight="1"
+            android:backgroundTint="#00FFFFFF"
+            android:scaleType="centerCrop"
+            android:src="@drawable/image"
+            android:text="Chọn hình"
+            android:tint="#000000" />
+
+        <EditText
+            android:id="@+id/MessageInput"
+            android:layout_width="226dp"
+            android:layout_height="56dp"
+            android:layout_weight="2"
+            android:hint="Nhập tin nhắn"
+            android:padding="8dp" />
+
+        <ImageButton
+            android:id="@+id/sendButton"
+            android:layout_width="83dp"
+            android:layout_height="match_parent"
+            android:backgroundTint="#00FFFFFF"
+            android:scaleType="centerCrop"
+            android:src="@drawable/sent"
+            android:text="Gửi"
+            android:tint="#000000" />
+
+    </LinearLayout>
+
+    <TextView
+        android:id="@+id/chatwith"
+        android:layout_width="163dp"
+        android:layout_height="36dp"
+        android:layout_alignParentStart="true"
+        android:layout_alignParentTop="true"
+        android:layout_marginStart="84dp"
+        android:layout_marginTop="29dp" />
+
+    <TextView
+        android:id="@+id/istyping"
+        android:layout_width="176dp"
+        android:layout_height="wrap_content"
+        android:layout_alignParentStart="true"
+        android:layout_alignParentBottom="true"
+        android:layout_marginStart="4dp"
+        android:layout_marginBottom="86dp"
+        android:text="User is typing"
+        android:visibility="gone" />
+
+</RelativeLayout>
+

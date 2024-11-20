@@ -42,7 +42,7 @@ public class SearchUser extends AppCompatActivity implements UserListener {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_search_user);
+        setContentView(R.layout.friend_activity_search_user);
         preferenceManager = new PreferenceManager(getApplicationContext());
 
         textErrorMessage = findViewById(R.id.textErrorMessage);

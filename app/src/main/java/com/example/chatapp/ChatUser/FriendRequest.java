@@ -1,7 +1,6 @@
 package com.example.chatapp.ChatUser;
 
 import android.os.Bundle;
-import android.util.Log;
 import android.view.View;
 import android.widget.ImageView;
 import android.widget.ProgressBar;
@@ -39,7 +38,7 @@ public class FriendRequest extends AppCompatActivity implements UserListener{
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_friend_request);
+        setContentView(R.layout.friend_activity_request);
         preferenceManager = new PreferenceManager(getApplicationContext());
 
         textErrorMessage = findViewById(R.id.textErrorMessage);
