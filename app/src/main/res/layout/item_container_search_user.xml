@@ -50,4 +50,17 @@
         app:layout_constraintTop_toBottomOf="@id/textName"
         app:layout_constraintEnd_toEndOf="parent" />
 
+    <Button
+        android:id="@+id/btnAddFriend"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginEnd="16dp"
+        android:layout_marginTop="8dp"
+        android:text="Kết bạn"
+        android:textSize="14sp"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toTopOf="@id/imageProfile"
+        android:backgroundTint="@color/primary"
+        tools:ignore="TextSize" />
+
 </androidx.constraintlayout.widget.ConstraintLayout>

@@ -3,14 +3,18 @@ package models;
 import java.io.Serializable;
 
 public class User implements Serializable {
-    public String userId,name,image,email,token;
-    public Boolean isFriendRequestSent=false;
-    public boolean isFriendRequestSent() {
-        return isFriendRequestSent;
+    private String userId,name,image,email,token;
+    private Boolean isFriendRequestSent=false;
+    private String friendStatus="none"; // Trạng thái kết bạn (none, sent, friend,received)
+    public String getFriendStatus() {
+        return friendStatus;
     }
 
-    public void setFriendRequestSent(boolean friendRequestSent) {
-        isFriendRequestSent = friendRequestSent;
+    public void setFriendStatus(String friendStatus) {
+        this.friendStatus = friendStatus;
+    }
+
+    public User() {
     }
 
     public String getUserId() {
@@ -53,11 +57,4 @@ public class User implements Serializable {
         this.token = token;
     }
 
-    public Boolean getFriendRequestSent() {
-        return isFriendRequestSent;
-    }
-
-    public void setFriendRequestSent(Boolean friendRequestSent) {
-        isFriendRequestSent = friendRequestSent;
-    }
 }

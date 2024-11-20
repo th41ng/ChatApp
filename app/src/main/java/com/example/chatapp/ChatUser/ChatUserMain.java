@@ -7,6 +7,7 @@ import android.graphics.BitmapFactory;
 import android.os.Bundle;
 import android.util.Base64;
 import android.util.Log;
+import android.view.MenuItem;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.ImageView;
@@ -15,6 +16,7 @@ import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.appcompat.widget.AppCompatImageView;
 import androidx.constraintlayout.widget.ConstraintLayout;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
@@ -26,7 +28,9 @@ import com.example.chatapp.PreferenceManager;
 import com.example.chatapp.R;
 import com.example.chatapp.Re_Sign.LoginActivity;
 import com.example.chatapp.UserHelper;
+import com.google.android.material.bottomnavigation.BottomNavigationView;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
+import com.google.android.material.navigation.NavigationBarView;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
@@ -45,14 +49,15 @@ import models.User;
 
 public class ChatUserMain extends AppCompatActivity  {
     private PreferenceManager preferenceManager;
-    private TextView name;
-    private ImageView image;
-    private FloatingActionButton fabNewFriend, fabFriends;
+    TextView name;
+    ImageView image;
+    AppCompatImageView btnSignOut;
+    ImageView imageSearch;
+    BottomNavigationView footer_menu;
     private RecyclerView recyclerViewChats;
     private LastMessageAdapter lastMessageAdapter;
     private List<Message> messageList;
     private DatabaseReference chatReference;
-    private View btnSignOut;
     private ConstraintLayout lastChatView;
     private boolean isMessagesFetched = false;
     String currentUserID = FirebaseAuth.getInstance().getCurrentUser().getUid();
@@ -65,6 +70,7 @@ public class ChatUserMain extends AppCompatActivity  {
 
         initializeUI();
         loadUserDetails();
+        getToken();
         setListeners();
 
 
@@ -84,8 +90,7 @@ public class ChatUserMain extends AppCompatActivity  {
     private void initializeUI() {
         name = findViewById(R.id.textName);
         image = findViewById(R.id.imageProfile);
-        fabNewFriend = findViewById(R.id.fabNewFriend);
-        fabFriends = findViewById(R.id.fabFriends);
+
         recyclerViewChats = findViewById(R.id.recyclerViewChats);
         lastChatView = findViewById(R.id.lastChatView);
         recyclerViewChats.setLayoutManager(new LinearLayoutManager(this));
@@ -229,14 +234,29 @@ public class ChatUserMain extends AppCompatActivity  {
         btnSignOut = findViewById(R.id.imageSignOut);
         btnSignOut.setOnClickListener(view -> signOut());
 
-        fabNewFriend = findViewById(R.id.fabNewFriend);
-        fabNewFriend.setOnClickListener(view -> startActivity(new Intent(getApplicationContext(), UserActivity.class)));
+        footer_menu=findViewById(R.id.footer_menu);
+        footer_menu.setOnItemReselectedListener(new NavigationBarView.OnItemReselectedListener() {
+            @Override
+            public void onNavigationItemReselected(@NonNull MenuItem item) {
+                if(item.getItemId()==R.id.menu_friends){
+                    Intent intent = new Intent(getApplicationContext(), UserActivity.class);
+                    startActivity(intent);
+                }
+                if(item.getItemId()==R.id.menu_add_friend){
+                    Intent intent = new Intent(getApplicationContext(), FriendRequest.class);
+                    startActivity(intent);
+                }
+            }
+        });
 
-        fabFriends = findViewById(R.id.fabFriends);
-        fabFriends.setOnClickListener(view -> startActivity(new Intent(getApplicationContext(), FriendRequest.class)));
-
+        imageSearch=findViewById(R.id.imageSearch);
+        imageSearch.setOnClickListener(view->{
+            Intent intent=new Intent(getApplicationContext(), SearchUser.class);
+            startActivity(intent);
+        });
 
     }
+
 
 
     private void signOut() {

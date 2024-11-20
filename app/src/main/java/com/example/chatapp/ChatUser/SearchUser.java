@@ -1,0 +1,294 @@
+package com.example.chatapp.ChatUser;
+
+import android.content.Intent;
+import android.os.Bundle;
+import android.text.Editable;
+import android.text.TextWatcher;
+import android.util.Log;
+import android.view.View;
+import android.widget.EditText;
+import android.widget.ImageView;
+import android.widget.ProgressBar;
+import android.widget.TextView;
+import android.widget.Toast;
+
+import androidx.appcompat.app.AppCompatActivity;
+import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
+
+import com.example.chatapp.Chat.Chats;
+import com.example.chatapp.R;
+import com.google.firebase.firestore.DocumentSnapshot;
+import com.google.firebase.firestore.FirebaseFirestore;
+import com.google.firebase.firestore.QueryDocumentSnapshot;
+
+import java.util.ArrayList;
+import java.util.List;
+
+import models.FriendRequest;
+import models.User;
+
+public class SearchUser extends AppCompatActivity implements UserListener {
+    private EditText searchEditText;
+    private ImageView imageBack;
+    private RecyclerView recyclerView;
+    private SearchUserAdapter searchUserAdapter;
+    private TextView textErrorMessage;
+    private ProgressBar progressBar;
+    private PreferenceManager preferenceManager;
+    private FirebaseFirestore database;
+    private List<User> userList = new ArrayList<>();
+
+    @Override
+    protected void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        setContentView(R.layout.activity_search_user);
+        preferenceManager = new PreferenceManager(getApplicationContext());
+
+        textErrorMessage = findViewById(R.id.textErrorMessage);
+        progressBar = findViewById(R.id.progressBar);
+        searchEditText = findViewById(R.id.searchEditText);
+        recyclerView = findViewById(R.id.usersRecyclerView);
+
+        recyclerView.setLayoutManager(new LinearLayoutManager(this));
+        searchUserAdapter = new SearchUserAdapter(userList, this);
+        recyclerView.setAdapter(searchUserAdapter);
+
+        imageBack = findViewById(R.id.imageBack);
+        setListeners();
+
+        database = FirebaseFirestore.getInstance();
+
+        findViewById(R.id.searchButton).setOnClickListener(view -> searchUsers());
+
+        // Lắng nghe khi người dùng nhập vào ô tìm kiếm
+        searchEditText.addTextChangedListener(new TextWatcher() {
+            @Override
+            public void beforeTextChanged(CharSequence charSequence, int start, int count, int after) {
+                searchUsers();
+            }
+
+            @Override
+            public void onTextChanged(CharSequence charSequence, int start, int before, int count) {
+            }
+
+            @Override
+            public void afterTextChanged(Editable editable) {
+                searchUsers();
+            }
+        });
+    }
+
+    private void showErrorMessage(String message) {
+        Toast.makeText(this, message, Toast.LENGTH_SHORT).show();
+        textErrorMessage.setVisibility(View.VISIBLE);
+    }
+
+    private void showSuccessMessage(String message) {
+        Toast.makeText(this, message, Toast.LENGTH_SHORT).show();
+    }
+
+    private void loading(Boolean isLoading) {
+        if (isLoading) {
+            progressBar.setVisibility(View.VISIBLE);
+        } else {
+            progressBar.setVisibility(View.INVISIBLE);
+        }
+    }
+
+    private void setListeners() {
+        imageBack.setOnClickListener(view -> getOnBackPressedDispatcher().onBackPressed());
+    }
+
+    private void searchUsers() {
+        loading(true);
+        String searchQuery = searchEditText.getText().toString().trim();
+        String currentUserId = preferenceManager.getString("userId");
+
+        if (searchQuery.isEmpty()) {
+            database.collection("users")
+                    .get()
+                    .addOnCompleteListener(task -> {
+                        loading(false);
+                        if (task.isSuccessful() && task.getResult() != null) {
+                            userList.clear();
+                            for (QueryDocumentSnapshot document : task.getResult()) {
+                                User user = document.toObject(User.class);
+                                user.setUserId(document.getId());
+                                if (user.getUserId().equals(currentUserId)) {
+                                    user.setName(user.getName() + " (Bạn)");
+                                }
+                                checkFriendStatus(user);
+                                userList.add(user);
+                            }
+                            recyclerView.setVisibility(View.VISIBLE);
+                            searchUserAdapter.notifyDataSetChanged();
+                        }
+                    });
+            return;
+        }
+
+        database.collection("users")
+                .orderBy("name") // Cần đảm bảo rằng bạn có chỉ mục cho trường "name"
+                .startAt(searchQuery) // Bắt đầu từ "nguoi"
+                .endAt(searchQuery + "\uf8ff") // Kết thúc tại "nguoi" với các ký tự sau
+                .get()
+                .addOnCompleteListener(task -> {
+                    loading(false);
+                    if (task.isSuccessful()) {
+                        userList.clear();
+                        if (task.getResult() != null && !task.getResult().isEmpty()) {
+                            for (QueryDocumentSnapshot document : task.getResult()) {
+                                User user = document.toObject(User.class);
+                                user.setUserId(document.getId());
+                                if (user.getUserId().equals(currentUserId)) {
+                                    user.setName(user.getName() + " (Bạn)");
+                                }
+                                checkFriendStatus(user);
+                                userList.add(user);
+                                Toast.makeText(SearchUser.this, "tìm thấy người dùng", Toast.LENGTH_SHORT).show();
+                            }
+
+                            recyclerView.setAdapter(searchUserAdapter);
+                            recyclerView.setVisibility(View.VISIBLE);
+                        } else {
+                            Toast.makeText(SearchUser.this, "Không tìm thấy người dùng", Toast.LENGTH_SHORT).show();
+                        }
+                    } else {
+                        Toast.makeText(SearchUser.this, "Lỗi tìm kiếm: " + task.getException().getMessage(), Toast.LENGTH_SHORT).show();
+                    }
+                });
+    }
+
+    private void checkFriendStatus(User user) {
+        String currentUserId = preferenceManager.getString("userId");
+        database.collection("friends")
+                .document(currentUserId)
+                .get()
+                .addOnCompleteListener(task -> {
+                    if (task.isSuccessful() && task.getResult() != null) {
+                        DocumentSnapshot document = task.getResult();
+                        boolean isFriend = document.contains(user.getUserId()) && Boolean.TRUE.equals(document.getBoolean(user.getUserId()));
+                        if (isFriend) {
+                            user.setFriendStatus("friend");
+                        }
+                    }
+                    finalizeUserUpdate(user);
+                });
+
+        database.collection("friend_requests")
+                .document(currentUserId)
+                .collection("sent")
+                .get()
+                .addOnCompleteListener(task -> {
+                    if (task.isSuccessful() && task.getResult() != null) {
+                        for (QueryDocumentSnapshot queryDocumentSnapshot : task.getResult()) {
+                            if (queryDocumentSnapshot.getId().equals(user.getUserId())) {
+                                user.setFriendStatus("sent");
+                                break;
+                            }
+                        }
+                    }
+                    finalizeUserUpdate(user);
+                });
+
+        database.collection("friend_requests")
+                .document(currentUserId)
+                .collection("received")
+                .get()
+                .addOnCompleteListener(task -> {
+                    if (task.isSuccessful() && task.getResult() != null) {
+                        for (QueryDocumentSnapshot queryDocumentSnapshot : task.getResult()) {
+                            if (queryDocumentSnapshot.getId().equals(user.getUserId())) {
+                                user.setFriendStatus("received");
+                                break;
+                            }
+                        }
+                    }
+                    finalizeUserUpdate(user);
+                });
+    }
+
+    private void finalizeUserUpdate(User user) {
+        int index = userList.indexOf(user);
+        if (index >= 0) {
+            userList.set(index, user);
+            Log.d("///","sss"+user.getName()+user.getFriendStatus());
+            searchUserAdapter.notifyItemChanged(index); // Chỉ cập nhật item cụ thể
+        }
+    }
+
+    @Override
+    public void onBtnRemoveFriend(User user) {
+        String currentUserId = preferenceManager.getString("userId");
+        String targetUserId = user.getUserId();
+        user.setFriendStatus("none");
+        searchUserAdapter.notifyDataSetChanged();
+
+        FirebaseFirestore database = FirebaseFirestore.getInstance();
+        database.collection("friend_requests")
+                .document(currentUserId)
+                .collection("sent")
+                .document(targetUserId)
+                .delete()
+                .addOnSuccessListener(unused -> {
+                    database.collection("friend_requests")
+                            .document(targetUserId)
+                            .collection("received")
+                            .document(currentUserId)
+                            .delete()
+                            .addOnSuccessListener(unused2 -> {
+                                Toast.makeText(this, "Hủy kết bạn thành công!", Toast.LENGTH_SHORT).show();
+                            })
+                            .addOnFailureListener(e -> {
+                                Toast.makeText(this, "Hủy trạng thái nhận thất bại!", Toast.LENGTH_SHORT).show();
+                            });
+                })
+                .addOnFailureListener(e -> {
+                    Toast.makeText(this, "Hủy yêu cầu kết bạn thất bại!", Toast.LENGTH_SHORT).show();
+                });
+    }
+
+    @Override
+    public void onUserClicked(User user) {
+        Intent intent = new Intent(getApplicationContext(), Chats.class);
+        intent.putExtra("friendId", user.getUserId());
+        intent.putExtra("friendName", user.getName());
+        startActivity(intent);
+        finish();
+    }
+
+    @Override
+    public void onBtnAddFriend(User user) {
+        String currentUserId = preferenceManager.getString("userId");
+        String targetUserId = user.getUserId();
+        user.setFriendStatus("sent");
+        searchUserAdapter.notifyDataSetChanged();
+
+        FirebaseFirestore database = FirebaseFirestore.getInstance();
+
+        // Lưu yêu cầu kết bạn từ currentUserId tới targetUserId
+        database.collection("friend_requests")
+                .document(currentUserId) // Tạo document với ID của người gửi
+                .collection("sent")      // Sub-collection chứa các yêu cầu đã gửi
+                .document(targetUserId)  // Tạo document với ID của người nhận
+                .set(new FriendRequest("sent")) // Lưu trạng thái "sent"
+                .addOnSuccessListener(unused -> {
+                    // Tiếp tục thêm trạng thái nhận của người nhận
+                    database.collection("friend_requests")
+                            .document(targetUserId)
+                            .collection("received")
+                            .document(currentUserId)
+                            .set(new FriendRequest("received"))
+                            .addOnSuccessListener(unused2 -> {
+                                Toast.makeText(this, "Yêu cầu kết bạn đã được gửi!", Toast.LENGTH_SHORT).show();
+                            })
+                            .addOnFailureListener(e -> {
+                                Toast.makeText(this, "Gửi trạng thái nhận thất bại!", Toast.LENGTH_SHORT).show();
+                            });
+                })
+                .addOnFailureListener(e -> {
+                    Toast.makeText(this, "Gửi yêu cầu kết bạn thất bại!", Toast.LENGTH_SHORT).show();
+                });
+    }
+}

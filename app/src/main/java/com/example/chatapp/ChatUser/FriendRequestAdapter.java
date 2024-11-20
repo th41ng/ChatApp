@@ -21,16 +21,16 @@ public class FriendRequestAdapter extends RecyclerView.Adapter<FriendRequestAdap
     private List<User> friendRequestList;
     private final UserListener userListener;
 
-    TextView textName;
-    TextView textEmail;
-    ImageView imageProfile;
-    private Button btnAgree,btnReject;
     public FriendRequestAdapter(List<User> friendRequestList, UserListener userListener) {
         this.friendRequestList = friendRequestList;
         this.userListener= userListener;
     }
 
     class FriendRequestViewHolder extends RecyclerView.ViewHolder {
+        TextView textName;
+        TextView textEmail;
+        ImageView imageProfile;
+        private Button btnAgree,btnReject;
         FriendRequestViewHolder(View itemView) {
             super(itemView);
             textName = itemView.findViewById(R.id.textName);
@@ -39,15 +39,9 @@ public class FriendRequestAdapter extends RecyclerView.Adapter<FriendRequestAdap
             btnAgree = itemView.findViewById(R.id.btnAgree);
             btnReject=itemView.findViewById(R.id.btnReject);
         }
-        void setFriendRequestData(User user){
-            textName.setText(user.name);
-            textEmail.setText(user.email);
-            // imageProfile.setImageBitmap(getUserImage(user.image));
-            btnAgree.setOnClickListener(v -> userListener.onBtnAddFriend(user));
-        }
     }
 
-        @NonNull
+    @NonNull
     @Override
     public FriendRequestViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
         View view = LayoutInflater.from(parent.getContext()).inflate(R.layout.item_container_friend, parent, false);
@@ -56,7 +50,21 @@ public class FriendRequestAdapter extends RecyclerView.Adapter<FriendRequestAdap
 
     @Override
     public void onBindViewHolder(FriendRequestViewHolder holder, int position) {
-        holder.setFriendRequestData(friendRequestList.get(position));
+        User user = friendRequestList.get(position);
+        holder.textName.setText(user.getName());
+        holder.textEmail.setText(user.getEmail());
+        // imageProfile.setImageBitmap(getUserImage(user.image));
+        holder.btnAgree.setOnClickListener(view -> {
+            userListener.onBtnAddFriend(user);
+            holder.btnAgree.setVisibility(View.GONE);
+            holder.btnReject.setVisibility(View.GONE);
+
+        });
+        holder.btnReject.setOnClickListener(view -> {
+            userListener.onBtnRemoveFriend(user);
+            holder.btnAgree.setVisibility(View.GONE);
+            holder.btnReject.setVisibility(View.GONE);
+        });
     }
 
     @Override
