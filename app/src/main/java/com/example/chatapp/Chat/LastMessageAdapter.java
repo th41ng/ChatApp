@@ -15,6 +15,8 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import com.bumptech.glide.Glide;
 import com.example.chatapp.R;
+import com.google.firebase.firestore.DocumentReference;
+import com.google.firebase.firestore.FirebaseFirestore;
 
 import java.text.SimpleDateFormat;
 import java.util.Date;
@@ -22,6 +24,7 @@ import java.util.List;
 import java.util.Locale;
 
 import models.Message;
+import models.User;
 
 public class LastMessageAdapter extends RecyclerView.Adapter<LastMessageAdapter.ViewHolder> {
     private final Context context;
@@ -44,11 +47,8 @@ public class LastMessageAdapter extends RecyclerView.Adapter<LastMessageAdapter.
     public void onBindViewHolder(@NonNull ViewHolder holder, int position) {
         Message message = messageList.get(position);
 
-        // Set avatar image (use Glide to load the avatar URL)
-        String avatarUrl = message.getAvatarUrl();
-        if (avatarUrl != null && !avatarUrl.isEmpty()) {
-            Glide.with(context).load(avatarUrl).into(holder.avatarImageView);
-        }
+        // Tải ảnh từ Firestore và hiển thị
+        setImage(holder.avatarImageView, message.getFriendId(), holder.itemView.getContext());
 
         // Set the friend's name
         String friendName = message.getFriendName();
@@ -79,8 +79,33 @@ public class LastMessageAdapter extends RecyclerView.Adapter<LastMessageAdapter.
             Log.d("friend","friendName:"+message.getFriendName());
             context.startActivity(intent);
         });
+    }
+    private void setImage(ImageView imageView, String userId, Context context) {
+        FirebaseFirestore db = FirebaseFirestore.getInstance();
+        DocumentReference userDoc = db.collection("users").document(userId);
 
-
+        userDoc.get()
+                .addOnCompleteListener(task -> {
+                    if (task.isSuccessful() && task.getResult() != null) {
+                        String imageUrl = task.getResult().getString("image"); // Trường 'image' lưu URL ảnh
+                        if (imageUrl != null) {
+                            // Sử dụng Glide để tải ảnh từ URL
+                            Glide.with(context)
+                                    .load(imageUrl)
+                                    .placeholder(R.drawable.default_avatar)
+                                    .into(imageView);
+                        } else {
+                            imageView.setImageResource(R.drawable.default_avatar); // Hình mặc định
+                        }
+                    } else {
+                        imageView.setImageResource(R.drawable.default_avatar); // Hình mặc định
+                        Log.d("FriendRequest", "Lỗi khi lấy dữ liệu Firestore");
+                    }
+                })
+                .addOnFailureListener(e -> {
+                    imageView.setImageResource(R.drawable.default_avatar); // Hình mặc định
+                    Log.d("FriendRequest", "Lỗi khi lấy dữ liệu Firestore", e);
+                });
     }
 
 

@@ -1,5 +1,6 @@
 package com.example.chatapp.ChatUser;
 
+import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.graphics.Bitmap;
@@ -10,6 +11,7 @@ import android.util.Log;
 
 import android.widget.ImageButton;
 
+import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -75,9 +77,6 @@ public class ChatUserMain extends AppCompatActivity  {
         loadUserDetails();
         getToken();
         setListeners();
-
-
-
     }
     @Override
     protected void onResume() {
@@ -113,33 +112,35 @@ public class ChatUserMain extends AppCompatActivity  {
                     .placeholder(R.drawable.default_avatar)
                     .into(image); // Gán ảnh vào ImageView
         } else {
-            FirebaseFirestore db = FirebaseFirestore.getInstance();
-            DocumentReference userDoc = db.collection("users").document("userId"); // Thay 'userId' bằng ID thực tế của người dùng
-
-            userDoc.get()
-                    .addOnCompleteListener(task -> {
-                        if (task.isSuccessful() && task.getResult() != null) {
-                            // Lấy dữ liệu từ Firestore
-                            String imageUrl = task.getResult().getString("image"); // Trường 'image' là nơi bạn lưu URL ảnh
-
-                            if (imageUrl != null) {
-                                // Sử dụng Glide để tải ảnh từ URL
-                                Glide.with(this)
-                                        .load(imageUrl)
-                                        .placeholder(R.drawable.default_avatar)
-                                        .into(image); // Gán ảnh vào ImageView
-                            }
-                        } else {
-                            image.setImageResource(R.drawable.default_avatar); // Hình ảnh mặc định
-                            Toast.makeText(this, "Lỗi khi lấy dữ liệu Firestore", Toast.LENGTH_SHORT).show();
-                        }
-                    })
-                    .addOnFailureListener(e -> {
-                        Toast.makeText(this, "Lỗi khi lấy dữ liệu từ Firestore", Toast.LENGTH_SHORT).show();
-                    });
+            setImage(image,currentUserID,this);
         }
+    }
+    private void setImage(ImageButton imageView, String userId, Context context) {
+        FirebaseFirestore db = FirebaseFirestore.getInstance();
+        DocumentReference userDoc = db.collection("users").document(userId);
 
-
+        userDoc.get()
+                .addOnCompleteListener(task -> {
+                    if (task.isSuccessful() && task.getResult() != null) {
+                        String imageUrl = task.getResult().getString("image"); // Trường 'image' lưu URL ảnh
+                        if (imageUrl != null) {
+                            // Sử dụng Glide để tải ảnh từ URL
+                            Glide.with(context)
+                                    .load(imageUrl)
+                                    .placeholder(R.drawable.default_avatar)
+                                    .into(imageView);
+                        } else {
+                            imageView.setImageResource(R.drawable.default_avatar); // Hình mặc định
+                        }
+                    } else {
+                        imageView.setImageResource(R.drawable.default_avatar); // Hình mặc định
+                        Log.d("FriendRequest", "Lỗi khi lấy dữ liệu Firestore");
+                    }
+                })
+                .addOnFailureListener(e -> {
+                    imageView.setImageResource(R.drawable.default_avatar); // Hình mặc định
+                    Log.d("FriendRequest", "Lỗi khi lấy dữ liệu Firestore", e);
+                });
     }
 
 
@@ -232,8 +233,6 @@ public class ChatUserMain extends AppCompatActivity  {
             }
         });
     }
-
-
 
     private void getToken() {
         FirebaseMessaging.getInstance().getToken().addOnSuccessListener(this::updateToken);

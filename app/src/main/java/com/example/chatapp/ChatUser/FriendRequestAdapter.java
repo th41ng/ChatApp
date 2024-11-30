@@ -1,16 +1,22 @@
 package com.example.chatapp.ChatUser;
 
+import android.content.Context;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 
+import com.bumptech.glide.Glide;
 import com.example.chatapp.R;
+import com.google.firebase.firestore.DocumentReference;
+import com.google.firebase.firestore.FirebaseFirestore;
 
 import java.util.List;
 
@@ -30,6 +36,7 @@ public class FriendRequestAdapter extends RecyclerView.Adapter<FriendRequestAdap
         TextView textName;
         TextView textEmail;
         ImageView imageProfile;
+
         private Button btnAgree,btnReject;
         FriendRequestViewHolder(View itemView) {
             super(itemView);
@@ -53,7 +60,10 @@ public class FriendRequestAdapter extends RecyclerView.Adapter<FriendRequestAdap
         User user = friendRequestList.get(position);
         holder.textName.setText(user.getName());
         holder.textEmail.setText(user.getEmail());
-        // imageProfile.setImageBitmap(getUserImage(user.image));
+
+        // Tải ảnh từ Firestore và hiển thị
+        setImage(holder.imageProfile, user.getUserId(), holder.itemView.getContext());
+
         holder.btnAgree.setOnClickListener(view -> {
             userListener.onBtnAddFriend(user);
             holder.btnAgree.setVisibility(View.GONE);
@@ -65,6 +75,33 @@ public class FriendRequestAdapter extends RecyclerView.Adapter<FriendRequestAdap
             holder.btnAgree.setVisibility(View.GONE);
             holder.btnReject.setVisibility(View.GONE);
         });
+    }
+    private void setImage(ImageView imageView, String userId, Context context) {
+        FirebaseFirestore db = FirebaseFirestore.getInstance();
+        DocumentReference userDoc = db.collection("users").document(userId);
+
+        userDoc.get()
+                .addOnCompleteListener(task -> {
+                    if (task.isSuccessful() && task.getResult() != null) {
+                        String imageUrl = task.getResult().getString("image"); // Trường 'image' lưu URL ảnh
+                        if (imageUrl != null) {
+                            // Sử dụng Glide để tải ảnh từ URL
+                            Glide.with(context)
+                                    .load(imageUrl)
+                                    .placeholder(R.drawable.default_avatar)
+                                    .into(imageView);
+                        } else {
+                            imageView.setImageResource(R.drawable.default_avatar); // Hình mặc định
+                        }
+                    } else {
+                        imageView.setImageResource(R.drawable.default_avatar); // Hình mặc định
+                        Log.d("FriendRequest", "Lỗi khi lấy dữ liệu Firestore");
+                    }
+                })
+                .addOnFailureListener(e -> {
+                    imageView.setImageResource(R.drawable.default_avatar); // Hình mặc định
+                    Log.d("FriendRequest", "Lỗi khi lấy dữ liệu Firestore", e);
+                });
     }
 
     @Override
