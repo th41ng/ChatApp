@@ -21,6 +21,7 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import com.cloudinary.android.callback.ErrorInfo;
 import com.example.chatapp.ChatUser.ChatUserMain;
+import com.example.chatapp.ChatUser.UsersAdapter;
 import com.example.chatapp.CloudinaryManager;
 import com.example.chatapp.R;
 import com.google.firebase.auth.FirebaseAuth;
@@ -37,8 +38,15 @@ import java.util.List;
 import java.util.Map;
 
 import com.cloudinary.android.MediaManager;
+import com.google.firebase.firestore.DocumentReference;
+import com.google.firebase.firestore.DocumentSnapshot;
+import com.google.firebase.firestore.FieldPath;
+import com.google.firebase.firestore.FirebaseFirestore;
+import com.google.firebase.firestore.QueryDocumentSnapshot;
 
 import models.Message;
+import models.User;
+
 //Trang nhắn tin chính
 public class Chats extends AppCompatActivity {
 
@@ -62,8 +70,8 @@ public class Chats extends AppCompatActivity {
     private Long scrollToTimestamp = null;
     private static boolean isMediaManagerInitialized = false;
     private TextView istyping;
-    private  TextView onl;
-private  ImageButton btnBack;
+    private TextView onl;
+    private ImageButton btnBack;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -78,7 +86,7 @@ private  ImageButton btnBack;
         chooseImg = findViewById(R.id.chooseImg);
         imageViewMessage = findViewById(R.id.selectedImageView); // Updated ImageView ID
         infoChatBtn = findViewById(R.id.infoChatBtn);
-        istyping=findViewById(R.id.istyping);
+        istyping = findViewById(R.id.istyping);
         btnBack = findViewById(R.id.btnBack);
         if (btnBack == null) {
             Log.e("Chats", "btnBack not found in layout!");
@@ -89,7 +97,7 @@ private  ImageButton btnBack;
         recyclerViewMessages.setLayoutManager(new LinearLayoutManager(this));
         recyclerViewMessages.setAdapter(MessageAdapter);
 
-        onl=findViewById(R.id.onl);
+        onl = findViewById(R.id.onl);
         //Lấy id người dùng hện tại
         FirebaseUser currentUser = FirebaseAuth.getInstance().getCurrentUser();
         if (currentUser != null) {
@@ -99,8 +107,8 @@ private  ImageButton btnBack;
         }
 
         friendId = getIntent().getStringExtra("friendId");
+        Log.d("friend","friendId:"+friendId);
         friendName = getIntent().getStringExtra("friendName");
-
         chatwith.setText(friendName);
         CloudinaryManager.initialize(this);
         createOrGetChatRoom();
@@ -160,8 +168,11 @@ private  ImageButton btnBack;
         MessageInput.addTextChangedListener(new TextWatcher() {
             private Handler handler = new Handler();
             private Runnable stopTyping = () -> setTypingStatus(false);
+
             @Override
-            public void beforeTextChanged(CharSequence s, int start, int count, int after) {}
+            public void beforeTextChanged(CharSequence s, int start, int count, int after) {
+            }
+
             @Override
             public void onTextChanged(CharSequence s, int start, int before, int count) {
                 // Kiểm tra nếu ô tin nhắn không trống thì gọi setTypingStatus(true)
@@ -174,8 +185,10 @@ private  ImageButton btnBack;
                 //handler.removeCallbacks(stopTyping);
                 //handler.postDelayed(stopTyping, 2000); // Dừng sau 2 giây không gõ
             }
+
             @Override
-            public void afterTextChanged(Editable s) {}
+            public void afterTextChanged(Editable s) {
+            }
         });
         listenForTypingStatus();
         //kết thúc TextWatcher cho ô tin nhắn để kiểm tra trạng thái "đang gõ"
@@ -183,37 +196,108 @@ private  ImageButton btnBack;
 
 
     private void createOrGetChatRoom() {
-        chatRoomId = currentUserId.compareTo(friendId) < 0 ?
-                currentUserId + "_" + friendId :
-                friendId + "_" + currentUserId;
-        DatabaseReference chatRoomRef = FirebaseDatabase.getInstance().getReference("chatRooms").child(chatRoomId);
-        chatRoomRef.addListenerForSingleValueEvent(new ValueEventListener() {
-            @Override
-            public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
-                if (!dataSnapshot.exists()) {
-                    Map<String, Object> chatRoomInfo = new HashMap<>();
-                    chatRoomInfo.put("user1", currentUserId);
-                    chatRoomInfo.put("user2", friendId);
-                    chatRoomInfo.put("timestamp", System.currentTimeMillis());
-                    chatRoomRef.setValue(chatRoomInfo).addOnCompleteListener(task -> {
-                        if (task.isSuccessful()) {
-                            loadMessages(chatRoomId);
-                        } else {
-                            Toast.makeText(getApplicationContext(), "Error creating chat room: " + task.getException().getMessage(), Toast.LENGTH_LONG).show();
+        if (friendId.contains(",") || friendId.startsWith("GROUP_")) {
+            // Xử lý nhóm chat
+            chatRoomId = getIntent().getStringExtra("chatRoomId");
+            if(friendId.startsWith("GROUP_")){
+                chatRoomId = friendId;
+            }
+            if (chatRoomId == null) {
+                Toast.makeText(this, "Chat Room ID for group is null.", Toast.LENGTH_SHORT).show();
+                return;
+            }
+            // Lấy danh sách người tham gia từ Firebase
+            DatabaseReference chatRoomRef = FirebaseDatabase.getInstance()
+                    .getReference("chatRooms")
+                    .child(chatRoomId);
+            chatRoomRef.addListenerForSingleValueEvent(new ValueEventListener() {
+                @Override
+                public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
+                    if (!dataSnapshot.exists()) {
+                        // Tạo nhóm chat mới
+                        Map<String, Object> chatRoomInfo = new HashMap<>();
+                        chatRoomInfo.put("groupName", "New Group Chat"); // Tên nhóm chat mặc định
+                        chatRoomInfo.put("timestamp", System.currentTimeMillis());
+                        chatRoomInfo.put("chatRoomOwner", currentUserId);
+                        // Danh sách người tham gia nhóm
+                        String[] participantsArray = friendId.split(",");
+                        List<String> participantsList = new ArrayList<>();
+                        for (String participant : participantsArray) {
+                            participantsList.add(participant.trim());
                         }
-                    });
-                } else {
-                    loadMessages(chatRoomId);
+
+                        chatRoomInfo.put("participants", participantsList);
+
+                        chatRoomRef.setValue(chatRoomInfo).addOnCompleteListener(task -> {
+                            if (task.isSuccessful()) {
+                                sendWelcomeMessage(chatRoomId);
+                                loadMessages(chatRoomId); // Tải tin nhắn nhóm
+                            } else {
+                                Toast.makeText(getApplicationContext(), "Error creating group chat: " + task.getException().getMessage(), Toast.LENGTH_LONG).show();
+                            }
+                        });
+                    } else {
+                        loadMessages(chatRoomId); // Tải tin nhắn nếu nhóm đã tồn tại
+                    }
                 }
-            }
-            @Override
-            public void onCancelled(@NonNull DatabaseError databaseError) {
-                Toast.makeText(Chats.this, "Error checking chat room: " + databaseError.getMessage(), Toast.LENGTH_SHORT).show();
-            }
-        });
+                @Override
+                public void onCancelled(@NonNull DatabaseError databaseError) {
+                    Toast.makeText(Chats.this, "Error checking group chat: " + databaseError.getMessage(), Toast.LENGTH_SHORT).show();
+                }
+            });
+        } else {
+            // Xử lý chat cá nhân
+            Log.d("test", "vao duoc");
+            chatRoomId = currentUserId.compareTo(friendId) < 0
+                    ? currentUserId + "_" + friendId
+                    : friendId + "_" + currentUserId;
+            DatabaseReference chatRoomRef = FirebaseDatabase.getInstance()
+                    .getReference("chatRooms")
+                    .child(chatRoomId);
+            chatRoomRef.addListenerForSingleValueEvent(new ValueEventListener() {
+                @Override
+                public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
+                    if (!dataSnapshot.exists()) {
+                        // Tạo phòng chat cá nhân
+                        Map<String, Object> chatRoomInfo = new HashMap<>();
+                        chatRoomInfo.put("user1", currentUserId);
+                        chatRoomInfo.put("user2", friendId);
+                        chatRoomInfo.put("timestamp", System.currentTimeMillis());
+                        chatRoomRef.setValue(chatRoomInfo).addOnCompleteListener(task -> {
+                            if (task.isSuccessful()) {
+                                loadMessages(chatRoomId);
+                            } else {
+                                Toast.makeText(getApplicationContext(), "Error creating chat room: " + task.getException().getMessage(), Toast.LENGTH_LONG).show();
+                            }
+                        });
+                    } else {
+                        loadMessages(chatRoomId);
+                    }
+                }
+                @Override
+                public void onCancelled(@NonNull DatabaseError databaseError) {
+                    Toast.makeText(Chats.this, "Error checking chat room: " + databaseError.getMessage(), Toast.LENGTH_SHORT).show();
+                }
+            });
+        }
     }
 
 
+    // Hàm gửi tin nhắn chào mừng
+    private void sendWelcomeMessage(String chatRoomId) {
+        String welcomeMessageContent = "Welcome to the chat room!";
+        Message welcomeMessage = new Message();
+        welcomeMessage.setContent(welcomeMessageContent);
+        welcomeMessage.setSenderId("system"); // ID của hệ thống hoặc quản trị
+        welcomeMessage.setTimestamp(System.currentTimeMillis());
+        // Lưu tin nhắn vào Firebase trong node tin nhắn của phòng chat
+        DatabaseReference messagesRef = FirebaseDatabase.getInstance()
+                .getReference("chatRooms")
+                .child(chatRoomId)
+                .child("messages")
+                .push();
+        messagesRef.setValue(welcomeMessage).addOnCompleteListener(task -> {});
+    }
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);

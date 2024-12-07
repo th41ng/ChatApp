@@ -13,7 +13,10 @@ import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.chatapp.Chat.Chats;
+import com.example.chatapp.Chat.groupChat;
 import com.example.chatapp.R;
+import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FieldPath;
 import com.google.firebase.firestore.FirebaseFirestore;
@@ -29,13 +32,15 @@ public class UserActivity extends AppCompatActivity implements UserListener{
     private TextView textErrorMessage;
     private ProgressBar progressBar;
     private RecyclerView usersRecyclerView;
-
+    private ImageButton btncreategr;
     private ImageView imageBack;
     private ImageButton btnhome, btnfriend, btnfindfriend;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.friend_activity_user);
+        FirebaseUser currentUser= FirebaseAuth.getInstance().getCurrentUser();
+        String currentUserID=currentUser.getUid();
 
         textErrorMessage = findViewById(R.id.textErrorMessage);
         progressBar = findViewById(R.id.progressBar);
@@ -43,7 +48,7 @@ public class UserActivity extends AppCompatActivity implements UserListener{
         imageBack=findViewById(R.id.btnBack);
         setListeners();
         getUser();
-
+        btncreategr=findViewById(R.id.btncreategr);
         btnfriend = findViewById(R.id.btnfriend);
         btnfindfriend = findViewById(R.id.btnfindfriend);
         btnhome= findViewById(R.id.btnhome);
@@ -62,6 +67,12 @@ public class UserActivity extends AppCompatActivity implements UserListener{
         // Gán sự kiện click cho btnhome
         btnhome.setOnClickListener(v -> {
             Intent intent = new Intent(getApplicationContext(), ChatUserMain.class);
+            startActivity(intent);
+        });
+        btncreategr.setOnClickListener(v -> {
+            Intent intent = new Intent(getApplicationContext(), groupChat.class);
+
+            intent.putExtra("userId",currentUserID);
             startActivity(intent);
         });
     }

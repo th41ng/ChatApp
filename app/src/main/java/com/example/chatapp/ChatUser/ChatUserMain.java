@@ -143,96 +143,124 @@ public class ChatUserMain extends AppCompatActivity  {
                 });
     }
 
+private void fetchMessages() {
+    Log.d("test", "currentUID: " + currentUserID);
+    if (currentUserID == null || currentUserID.isEmpty()) {
+        showToast("User ID not found. Please log in again.");
+        return;
+    }
 
-    private void fetchMessages() {
-        Log.d("test", "currentUID: " + currentUserID);
-        if (currentUserID == null || currentUserID.isEmpty()) {
-            showToast("User ID not found. Please log in again.");
-            return;
-        }
+    DatabaseReference chatRoomsRef = FirebaseDatabase.getInstance().getReference("chatRooms");
 
-        DatabaseReference chatRoomsRef = FirebaseDatabase.getInstance().getReference("chatRooms");
+    // Listen for all chat rooms
+    chatRoomsRef.addListenerForSingleValueEvent(new ValueEventListener() {
+        @Override
+        public void onDataChange(@NonNull DataSnapshot snapshot) {
+            messageList.clear(); // Clear the message list before adding new data
 
-        // Listen for all chat rooms
-        chatRoomsRef.addListenerForSingleValueEvent(new ValueEventListener() {
-            @Override
-            public void onDataChange(@NonNull DataSnapshot snapshot) {
-                messageList.clear(); // Clear the message list before adding new data
+            for (DataSnapshot roomSnapshot : snapshot.getChildren()) {
+                String user1 = roomSnapshot.child("user1").getValue(String.class);
+                String user2 = roomSnapshot.child("user2").getValue(String.class);
 
-                for (DataSnapshot roomSnapshot : snapshot.getChildren()) {
-                    String user1 = roomSnapshot.child("user1").getValue(String.class);
-                    String user2 = roomSnapshot.child("user2").getValue(String.class);
-                    String userFriend = "";
+                // If currentUserID is part of this one-to-one chat
+                if ((currentUserID.equals(user1) || currentUserID.equals(user2))) {
+                    Log.d("test", "Match found for user: " + currentUserID);
 
-                    Log.d("test", "Checking room: user1=" + user1 + ", user2=" + user2);
+                    // Determine the other user (the friend)
+                    String userFriend = user1.equals(currentUserID) ? user2 : user1;
 
-                    // Check who the friend is
-                    if (!user1.equals(currentUserID)) {
-                        userFriend = user1;
-                    } else if (!user2.equals(currentUserID)) {
-                        userFriend = user2;
+                    // Fetch friend info and messages
+                    UserHelper.getUserInfo(userFriend, new UserHelper.OnUserInfoFetched() {
+                        @Override
+                        public void onUserInfoFetched(String name, String email, String imageUrl) {
+                            Log.d("UserInfo", "Friend's name: " + name);
+
+                            // Fetch the messages in the room
+                            DataSnapshot messagesSnapshot = roomSnapshot.child("messages");
+
+                            if (messagesSnapshot.exists()) {
+                                Message lastMessage = null; // Track the last message for this chat
+
+                                for (DataSnapshot messageSnapshot : messagesSnapshot.getChildren()) {
+                                    Message message = messageSnapshot.getValue(Message.class);
+
+                                    if (message != null) {
+                                        message.setFriendName(name); // Set the friend's name
+                                        message.setFriendId(userFriend); // Set the friend's ID
+                                        lastMessage = message; // Update the last message
+                                    }
+                                }
+
+                                if (lastMessage != null) {
+                                    messageList.add(lastMessage); // Add the last message
+                                }
+
+                                lastMessageAdapter.notifyDataSetChanged();
+
+                                // Scroll to the last message if needed
+                                if (recyclerViewChats != null && messageList.size() > 0) {
+                                    recyclerViewChats.scrollToPosition(messageList.size() - 1);
+                                }
+                            }
+                        }
+
+                        @Override
+                        public void onFailure(String errorMessage) {
+                            showToast("Failed to get friend info: " + errorMessage);
+                        }
+                    });
+
+                } else {
+                    // Handle group chat scenario (more than 2 participants)
+                    List<String> participants = new ArrayList<>();
+                    for (DataSnapshot participantSnapshot : roomSnapshot.child("participants").getChildren()) {
+                        participants.add(participantSnapshot.getValue(String.class));
                     }
 
-                    // Check if currentUserId is in either user1 or user2
-                    if (currentUserID.equals(user1) || currentUserID.equals(user2)) {
-                        Log.d("test", "Match found for user: " + currentUserID);
+                    if (participants.contains(currentUserID)) {
+                        Log.d("test", "Group chat match found for user: " + currentUserID);
 
-                        // Fetch the name of the user friend
-                        String finalUserFriend = userFriend;
-                        UserHelper.getUserInfo(userFriend, new UserHelper.OnUserInfoFetched() {
-                            @Override
-                            public void onUserInfoFetched(String name, String email, String imageUrl) {
-                                Log.d("UserInfo", "Friend's name: " + name);
+                        String groupName = "Group Chat"; // Placeholder for group name (can be fetched from the DB)
+                        String groupId = roomSnapshot.getKey(); // Use room ID as the group ID
 
-                                // Fetch the messages in the room
-                                DataSnapshot messagesSnapshot = roomSnapshot.child("messages");
+                        // Fetch the messages in the room
+                        DataSnapshot messagesSnapshot = roomSnapshot.child("messages");
 
-                                // Check if there are any messages
-                                if (messagesSnapshot.exists()) {
-                                    Message lastMessage = null; // Track the last message for this chat
+                        if (messagesSnapshot.exists()) {
+                            Message lastMessage = null;
 
-                                    // Iterate through the messages
-                                    for (DataSnapshot messageSnapshot : messagesSnapshot.getChildren()) {
-                                        Message message = messageSnapshot.getValue(Message.class);
+                            for (DataSnapshot messageSnapshot : messagesSnapshot.getChildren()) {
+                                Message message = messageSnapshot.getValue(Message.class);
 
-                                        // Set the correct friend's name for each message
-                                        if (message != null) {
-                                            message.setFriendName(name); // Set the friend's name in the message
-                                            message.setFriendId(finalUserFriend); // Set the friend's ID in the message);
-                                            lastMessage = message; // Update the last message
-                                        }
-                                    }
-
-                                    // After iterating through all the messages, add the last message to the list
-                                    if (lastMessage != null) {
-                                        messageList.add(lastMessage); // Only add the last message
-                                    }
-
-                                    // Notify the adapter that the data has changed
-                                    lastMessageAdapter.notifyDataSetChanged();
-
-                                    // Check if user is at the bottom of the list, and scroll to new message
-                                    if (recyclerViewChats != null && messageList.size() > 0) {
-                                        recyclerViewChats.scrollToPosition(messageList.size() - 1);
-                                    }
+                                if (message != null) {
+                                    message.setFriendName(groupName); // Set the group name for group chat
+                                    message.setFriendId(groupId); // Set group ID in message
+                                    lastMessage = message;
                                 }
                             }
 
-                            @Override
-                            public void onFailure(String errorMessage) {
-                                showToast("Failed to get friend info: " + errorMessage);
+                            if (lastMessage != null) {
+                                messageList.add(lastMessage); // Add the last message for the group
                             }
-                        });
+
+                            lastMessageAdapter.notifyDataSetChanged();
+
+                            // Scroll to the last message if needed
+                            if (recyclerViewChats != null && messageList.size() > 0) {
+                                recyclerViewChats.scrollToPosition(messageList.size() - 1);
+                            }
+                        }
                     }
                 }
             }
+        }
 
-            @Override
-            public void onCancelled(@NonNull DatabaseError error) {
-                showToast("Error fetching messages: " + error.getMessage());
-            }
-        });
-    }
+        @Override
+        public void onCancelled(@NonNull DatabaseError error) {
+            showToast("Error fetching messages: " + error.getMessage());
+        }
+    });
+}
 
     private void getToken() {
         FirebaseMessaging.getInstance().getToken().addOnSuccessListener(this::updateToken);

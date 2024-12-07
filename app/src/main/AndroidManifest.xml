@@ -8,7 +8,6 @@
     <uses-permission android:name="android.permission.READ_MEDIA_IMAGES" />
     <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
 
-
     <application
         android:allowBackup="true"
         android:dataExtractionRules="@xml/data_extraction_rules"
@@ -19,6 +18,9 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.ChatApp"
         tools:targetApi="31">
+        <activity
+            android:name=".Chat.groupChat"
+            android:exported="false" />
         <activity
             android:name=".ChatUser.SearchUser"
             android:exported="false" />
@@ -36,12 +38,11 @@
             android:exported="false" />
         <activity
             android:name=".Chat.Chats"
-            android:windowSoftInputMode="adjustResize"
-            android:exported="false" />
+            android:exported="false"
+            android:windowSoftInputMode="adjustResize" />
         <activity
             android:name=".Re_Sign.RegisterActivity"
             android:exported="false" />
-
         <activity
             android:name=".ChatUser.ChangeProfile"
             android:exported="false" />
@@ -50,10 +51,10 @@
             android:exported="true">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
+
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
     </application>
 
 </manifest>
-

@@ -30,7 +30,7 @@ public class RegisterActivity extends AppCompatActivity {
     private FirebaseFirestore db;
     private Button btnRegister;
     private FirebaseAuth mAuth;
-    private ProgressBar progressBar;
+   // private ProgressBar progressBar;
 
     private static final String TAG = "RegisterActivity";
 
@@ -41,7 +41,7 @@ public class RegisterActivity extends AppCompatActivity {
         setContentView(R.layout.user_activity_egister);
 
         mAuth = FirebaseAuth.getInstance();
-        progressBar = findViewById(R.id.progressBar);
+        //progressBar = findViewById(R.id.progressBar);
         db = FirebaseFirestore.getInstance();
 
         emailedit = findViewById(R.id.email);
@@ -78,14 +78,12 @@ public class RegisterActivity extends AppCompatActivity {
             return;
         }
 
-        // Hiển thị ProgressBar
-        progressBar.setVisibility(View.VISIBLE);
 
         mAuth.createUserWithEmailAndPassword(email, pass).addOnCompleteListener(new OnCompleteListener<AuthResult>() {
             @Override
             public void onComplete(@NonNull Task<AuthResult> task) {
                 // Ẩn ProgressBar
-                progressBar.setVisibility(View.GONE);
+                //progressBar.setVisibility(View.GONE);
 
                 if (task.isSuccessful()) {
                     Toast.makeText(getApplicationContext(), "Tạo tài khoản thành công", Toast.LENGTH_SHORT).show();
