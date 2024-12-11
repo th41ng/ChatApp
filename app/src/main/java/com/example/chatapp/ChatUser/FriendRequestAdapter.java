@@ -8,7 +8,6 @@ import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
@@ -24,7 +23,7 @@ import models.User;
 
 public class FriendRequestAdapter extends RecyclerView.Adapter<FriendRequestAdapter.FriendRequestViewHolder> {
 
-    private List<User> friendRequestList;
+    private final List<User> friendRequestList;
     private final UserListener userListener;
 
     public FriendRequestAdapter(List<User> friendRequestList, UserListener userListener) {
@@ -32,12 +31,12 @@ public class FriendRequestAdapter extends RecyclerView.Adapter<FriendRequestAdap
         this.userListener= userListener;
     }
 
-    class FriendRequestViewHolder extends RecyclerView.ViewHolder {
+    public static class FriendRequestViewHolder extends RecyclerView.ViewHolder {
         TextView textName;
         TextView textEmail;
         ImageView imageProfile;
 
-        private Button btnAgree,btnReject;
+        Button btnAgree,btnReject;
         FriendRequestViewHolder(View itemView) {
             super(itemView);
             textName = itemView.findViewById(R.id.textName);

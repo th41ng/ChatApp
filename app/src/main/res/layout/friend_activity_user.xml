@@ -114,8 +114,8 @@
             android:backgroundTint="@android:color/transparent"
             android:scaleType="fitCenter"
             android:contentDescription="Home"
-            android:tint="#000000"
-            app:srcCompat="@drawable/home" />
+            app:srcCompat="@drawable/home"
+            app:tint="#000000" />
 
         <!-- Friends Button -->
         <ImageButton
@@ -126,8 +126,8 @@
             android:backgroundTint="@android:color/transparent"
             android:scaleType="fitCenter"
             android:contentDescription="Friends"
-            android:tint="#00A5B1"
-            app:srcCompat="@drawable/friend" />
+            app:srcCompat="@drawable/friend"
+            app:tint="#00A5B1" />
 
         <!-- Add Friend Button -->
         <ImageButton
@@ -138,8 +138,8 @@
             android:backgroundTint="@android:color/transparent"
             android:scaleType="fitCenter"
             android:contentDescription="Add Friend"
-            android:tint="#000000"
-            app:srcCompat="@drawable/addfriend" />
+            app:srcCompat="@drawable/addfriend"
+            app:tint="#000000" />
     </LinearLayout>
 
     <ImageButton

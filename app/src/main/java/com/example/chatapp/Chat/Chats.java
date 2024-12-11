@@ -7,6 +7,7 @@ import android.os.Handler;
 import android.text.Editable;
 import android.text.TextWatcher;
 import android.util.Log;
+import android.view.LayoutInflater;
 import android.view.View;
 import android.widget.EditText;
 import android.widget.ImageButton;
@@ -15,12 +16,16 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
+import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.cloudinary.android.callback.ErrorInfo;
+import com.example.chatapp.ChatUser.ChangeProfile;
 import com.example.chatapp.ChatUser.ChatUserMain;
+import com.example.chatapp.ChatUser.UserInfor;
+import com.example.chatapp.ChatUser.UserListener;
 import com.example.chatapp.ChatUser.UsersAdapter;
 import com.example.chatapp.CloudinaryManager;
 import com.example.chatapp.R;
@@ -41,6 +46,7 @@ import com.cloudinary.android.MediaManager;
 import com.google.firebase.firestore.DocumentReference;
 import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FieldPath;
+import com.google.firebase.firestore.FieldValue;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.QueryDocumentSnapshot;
 
@@ -48,7 +54,7 @@ import models.Message;
 import models.User;
 
 //Trang nhắn tin chính
-public class Chats extends AppCompatActivity {
+public class Chats extends AppCompatActivity implements UserListener {
 
     private RecyclerView recyclerViewMessages;
     private MessageAdapter MessageAdapter;
@@ -121,11 +127,7 @@ public class Chats extends AppCompatActivity {
         });
         //set up the infoChat button click
         infoChatBtn.setOnClickListener(v -> {
-            Intent intent = new Intent(Chats.this, InfoChat.class);
-            intent.putExtra("chatRoomId", chatRoomId);
-            intent.putExtra("friendId", friendId);
-            intent.putExtra("friendName", friendName);
-            startActivity(intent);
+            activityInfoChatBtn();
         });
         // Set up the send button click listener
         sendButton.setOnClickListener(v -> {
@@ -394,6 +396,7 @@ public class Chats extends AppCompatActivity {
             }
         });
     }
+
     interface OnImageUploadedListener {
         void onImageUploaded(String imageUrl);
     }
@@ -502,6 +505,279 @@ public class Chats extends AppCompatActivity {
             }
         });
     }
+    private void activityInfoChatBtn(){
+        // Tạo một danh sách các lựa chọn
+        if(friendId.startsWith("GROUP_")){
+            String[] options = { "Tìm kiếm tin nhắn trong nhóm","Chuyển vai trò quản lý", "Hủy"};
 
+            // Hiển thị AlertDialog
+            new AlertDialog.Builder(this)
+                    .setTitle("Lựa chọn thao tác" )
+                    .setItems(options, (dialog, which) -> {
+                        switch (which) {
+                            case 0:
+                                Intent intent = new Intent(Chats.this, InfoChat.class);
+                                intent.putExtra("chatRoomId", chatRoomId);
+                                intent.putExtra("friendId", friendId);
+                                intent.putExtra("friendName", friendName);
+                                startActivity(intent);
+                                break;
+                            case 1:
+                                // Khởi tạo tham chiếu đến Firestore
+                                FirebaseFirestore db = FirebaseFirestore.getInstance();
 
+                                // Truy vấn vào collection "chatRooms"
+                                db.collection("chatRooms")
+                                        .document(chatRoomId)
+                                        .get()
+                                        .addOnCompleteListener(task -> {
+                                            if (task.isSuccessful()) {
+                                                DocumentSnapshot document = task.getResult();
+                                                if (document.exists()) {
+                                                    // Lấy giá trị của "managerId"
+                                                    String managerId = document.getString("managerId");
+                                                    Log.d("Manager ID", "Manager ID: " + managerId);
+                                                    if(currentUserId.equals(managerId)){
+                                                        userChangeManager();
+                                                    }
+                                                    else {
+                                                        Toast.makeText(this,"Bạn không có quyền thay đổi quản lý",Toast.LENGTH_SHORT).show();
+                                                    }
+                                                } else {
+                                                    Log.d("Firestore", "Không tồn tại dữ liệu!");
+                                                }
+                                            } else {
+                                                Log.e("Firestore", "Lỗi lấy dữ liệu", task.getException());
+                                            }
+                                        });
+                                break;
+                            case 2: // Hủy
+                                dialog.dismiss();
+                                break;
+                        }
+                    })
+                    .show();
+        }
+        else {
+            Intent intent = new Intent(Chats.this, InfoChat.class);
+            intent.putExtra("chatRoomId", chatRoomId);
+            intent.putExtra("friendId", friendId);
+            intent.putExtra("friendName", friendName);
+            startActivity(intent);
+        }
+
+    }
+    private void userChangeManager(){
+        // Tham chiếu đến tài liệu trong Firestore
+        FirebaseFirestore db = FirebaseFirestore.getInstance();
+        DocumentReference docRef = db.collection("chatRooms").document(chatRoomId);
+
+        // Lấy dữ liệu từ tài liệu
+        docRef.get().addOnSuccessListener(documentSnapshot -> {
+            if (documentSnapshot.exists()) {
+                // Lấy danh sách participants
+                List<String> participants = (List<String>) documentSnapshot.get("participants");
+
+                if (participants != null) {
+                    participants.remove(currentUserId);
+                    db.collection("users")
+                            .whereIn(FieldPath.documentId(), participants)  // Lọc chỉ lấy những người là thành viên
+                            .get()
+                            .addOnCompleteListener(userTask -> {
+                                if (userTask.isSuccessful() && userTask.getResult() != null) {
+                                    List<User> users = new ArrayList<>();
+                                    for (QueryDocumentSnapshot queryDocumentSnapshot : userTask.getResult()) {
+                                        User user = queryDocumentSnapshot.toObject(User.class);
+                                        user.setUserId(queryDocumentSnapshot.getId());
+                                        users.add(user);
+                                    }
+
+                                    // Hiển thị danh sách
+                                    if (!users.isEmpty()) {
+                                        // Hiển thị AlertDialog khi cần
+                                        showUserDialog(users);
+                                    }
+                                }
+                            });
+                }
+            } else {
+                Log.d("Firestore", "Không có dữ liệu tồn tại ");
+            }
+        }).addOnFailureListener(e -> {
+            Log.e("Firestore", "Lỗi lấy dữ liệu", e);
+        });
+
+    }
+    private void showUserDialog(List<User> userList) {
+        // Inflate layout của RecyclerView
+        LayoutInflater inflater = LayoutInflater.from(this);
+        View dialogView = inflater.inflate(R.layout.friend_dialog_recycler, null);
+
+        // Tìm RecyclerView
+        RecyclerView recyclerView = dialogView.findViewById(R.id.recyclerViewUsers);
+        recyclerView.setLayoutManager(new LinearLayoutManager(this));
+
+        // Tạo adapter và thiết lập
+        UsersAdapter adapter = new UsersAdapter(userList, this);
+        recyclerView.setAdapter(adapter);
+
+        // Hiển thị AlertDialog
+        new AlertDialog.Builder(this)
+                .setTitle("Chọn User")
+                .setView(dialogView)
+                .setNegativeButton("Hủy", (dialog, which) -> dialog.dismiss())
+                .create()
+                .show();
+    }
+    @Override
+    public void onUserClicked(User user) {
+        String userId = user.getUserId();
+        FirebaseFirestore db = FirebaseFirestore.getInstance();
+        DocumentReference userRef = db.collection("chatRooms").document(chatRoomId);
+
+        // Lấy thông tin trường "changeId"
+        userRef.get()
+                .addOnSuccessListener(documentSnapshot -> {
+                    if (documentSnapshot.exists()) {
+                        // Kiểm tra xem trường "changeId" có tồn tại hay không
+                        String currentChangeId = documentSnapshot.contains("changeId")
+                                ? documentSnapshot.getString("changeId")
+                                : null;
+
+                        if (currentChangeId == null) {
+                            // Trường changeId chưa được thiết lập => Chưa có yêu cầu thay đổi
+                            updateChangeId(userId);
+                        } else if (!currentChangeId.equals(userId)) {
+                            // Trường changeId chứa userId khác => hỏi người dùng có muốn thay đổi không
+                            showConfirmationDialog(userId, "Bạn có muốn thay đổi người đã yêu cầu  không?", true);
+                        } else {
+                            // Trường changeId trùng với userId => hỏi người dùng có muốn hủy yêu cầu không
+                            showConfirmationDialog(userId, "Bạn có muốn hủy yêu cầu thay đổi không?", false);
+                        }
+                    } else {
+                        Log.d("Firestore", "Tài liệu người dùng không tồn tại");
+                    }
+                })
+                .addOnFailureListener(e -> {
+                    Log.e("Firestore", "Lỗi lấy dữ liệu", e);
+                });
+    }
+
+    private void showConfirmationDialog(String userId, String message, boolean isChangeRequest) {
+        // Hiển thị hộp thoại xác nhận với hai lựa chọn "Yes" và "No"
+        new AlertDialog.Builder(this)
+                .setMessage(message)
+                .setPositiveButton("Yes", (dialog, which) -> {
+                    if (isChangeRequest) {
+                        // Nếu là thay đổi yêu cầu, cập nhật changeId
+                        updateChangeId(userId);
+                    } else {
+                        // Nếu là hủy yêu cầu, xóa trường changeId
+                        deleteChangeId(userId);
+                    }
+                })
+                .setNegativeButton("No", null)
+                .show();
+    }
+
+    private void updateChangeId(String userId) {
+        // Thêm yêu cầu vào collection "managerChangeRequests"
+        FirebaseFirestore db = FirebaseFirestore.getInstance();
+        Map<String, Object> request = new HashMap<>();
+        request.put("chatRoomId", chatRoomId);
+        request.put("requestedBy", currentUserId); // Người yêu cầu
+        request.put("requestedTo", userId); // Người được yêu cầu làm quản lý
+        request.put("timestamp", System.currentTimeMillis()); // Thời gian tạo yêu cầu
+
+        // Kiểm tra xem tài liệu với chatRoomId đã tồn tại chưa
+        db.collection("managerChangeRequests")
+                .whereEqualTo("chatRoomId", chatRoomId)
+                .get()
+                .addOnSuccessListener(queryDocumentSnapshots -> {
+                    if (!queryDocumentSnapshots.isEmpty()) {
+                        // Tài liệu đã tồn tại, cập nhật nội dung
+                        for (QueryDocumentSnapshot document : queryDocumentSnapshots) {
+                            db.collection("managerChangeRequests").document(document.getId())
+                                    .set(request) // Cập nhật nội dung tài liệu
+                                    .addOnSuccessListener(aVoid -> {
+                                        Toast.makeText(getApplicationContext(), "Yêu cầu thay đổi quản lý đã được cập nhật", Toast.LENGTH_SHORT).show();
+                                    })
+                                    .addOnFailureListener(e -> {
+                                        Toast.makeText(getApplicationContext(), "Có lỗi khi cập nhật yêu cầu", Toast.LENGTH_SHORT).show();
+                                        Log.e("Firestore", "Error updating change request", e);
+                                    });
+                        }
+                    } else {
+                        // Tài liệu chưa tồn tại, thêm mới
+                        db.collection("managerChangeRequests")
+                                .add(request)
+                                .addOnSuccessListener(documentReference -> {
+                                    Toast.makeText(getApplicationContext(), "Yêu cầu thay đổi quản lý đã được gửi", Toast.LENGTH_SHORT).show();
+                                })
+                                .addOnFailureListener(e -> {
+                                    Toast.makeText(getApplicationContext(), "Có lỗi khi gửi yêu cầu", Toast.LENGTH_SHORT).show();
+                                    Log.e("Firestore", "Error adding change request", e);
+                                });
+                    }
+                })
+                .addOnFailureListener(e -> {
+                    Toast.makeText(getApplicationContext(), "Có lỗi khi kiểm tra yêu cầu", Toast.LENGTH_SHORT).show();
+                    Log.e("Firestore", "Error checking change request", e);
+                });
+
+        // Cập nhật changeId
+        DocumentReference userRef = db.collection("chatRooms").document(chatRoomId);
+
+        userRef.update("changeId", userId)
+                .addOnSuccessListener(aVoid -> {
+                    Toast.makeText(getApplicationContext(), "Yêu cầu thay đổi quản lý thành công", Toast.LENGTH_SHORT).show();
+                })
+                .addOnFailureListener(e -> {
+                    Toast.makeText(getApplicationContext(), "Có lỗi khi cập nhật yêu cầu", Toast.LENGTH_SHORT).show();
+                    Log.e("Firestore", "Error updating changeId", e);
+                });
+    }
+
+    private void deleteChangeId(String userId) {
+        // Xóa changeId
+        FirebaseFirestore db = FirebaseFirestore.getInstance();
+        DocumentReference userRef = db.collection("chatRooms").document(chatRoomId);
+
+        userRef.update("changeId", FieldValue.delete())
+                .addOnSuccessListener(aVoid -> {
+                    Toast.makeText(getApplicationContext(), "Yêu cầu thay đổi quản lý đã bị hủy", Toast.LENGTH_SHORT).show();
+                })
+                .addOnFailureListener(e -> {
+                    Toast.makeText(getApplicationContext(), "Có lỗi khi hủy yêu cầu", Toast.LENGTH_SHORT).show();
+                    Log.e("Firestore", "Error deleting changeId", e);
+                });
+        // Xóa yêu cầu trong collection "managerChangeRequests"
+        db.collection("managerChangeRequests")
+                .whereEqualTo("chatRoomId", chatRoomId)
+                .whereEqualTo("requestedTo", userId) // Điều kiện tìm đúng yêu cầu
+                .get()
+                .addOnSuccessListener(queryDocumentSnapshots -> {
+                    for (QueryDocumentSnapshot document : queryDocumentSnapshots) {
+                        db.collection("managerChangeRequests").document(document.getId())
+                                .delete()
+                                .addOnSuccessListener(aVoid -> {
+                                    Toast.makeText(getApplicationContext(), "Yêu cầu thay đổi quản lý trong managerChangeRequests đã bị hủy", Toast.LENGTH_SHORT).show();
+                                })
+                                .addOnFailureListener(e -> {
+                                    Toast.makeText(getApplicationContext(), "Có lỗi khi xóa yêu cầu trong managerChangeRequests", Toast.LENGTH_SHORT).show();
+                                    Log.e("Firestore", "Error deleting changeId in managerChangeRequests", e);
+                                });
+                    }
+                })
+                .addOnFailureListener(e -> {
+                    Toast.makeText(getApplicationContext(), "Có lỗi khi truy vấn yêu cầu trong managerChangeRequests", Toast.LENGTH_SHORT).show();
+                    Log.e("Firestore", "Error fetching requests in managerChangeRequests", e);
+                });
+    }
+    @Override
+    public void onBtnAddFriend(User user) {
+    }
+    @Override
+    public void onBtnRemoveFriend(User user) {
+    }
 }

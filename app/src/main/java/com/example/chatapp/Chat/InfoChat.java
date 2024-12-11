@@ -53,7 +53,7 @@ public class InfoChat extends AppCompatActivity {
 
         imgbtnBack=findViewById(R.id.imgBtnBack);
         imgbtnBack.setOnClickListener(v -> {
-            finish();
+            getOnBackPressedDispatcher().onBackPressed();
         });
         // Cài đặt RecyclerView và adapter
 //        RecyclerView searchResultsRecyclerView = findViewById(R.id.showFindWordMessage);

@@ -18,7 +18,6 @@ public class User implements Serializable {
 
     private String phone;
     private String token;
-    private Boolean isFriendRequestSent=false;
     private String friendStatus="none"; // Trạng thái kết bạn (none, sent, friend,received)
     public String getFriendStatus() {
         return friendStatus;

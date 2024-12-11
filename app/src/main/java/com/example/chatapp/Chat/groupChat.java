@@ -265,7 +265,7 @@ public class groupChat extends AppCompatActivity {
 
         // Lưu thông tin nhóm vào Firestore
         FirebaseFirestore db = FirebaseFirestore.getInstance();
-        GroupChatRoom groupChatRoom = new GroupChatRoom(chatRoomId, new ArrayList<>(selectedUserIds), System.currentTimeMillis());
+        GroupChatRoom groupChatRoom = new GroupChatRoom(chatRoomId,currentUserId, new ArrayList<>(selectedUserIds), System.currentTimeMillis());
 
         db.collection("chatRooms").document(chatRoomId)
                 .set(groupChatRoom)
@@ -276,6 +276,7 @@ public class groupChat extends AppCompatActivity {
                         // Chuyển sang giao diện chat nhóm
                         Intent intent = new Intent(this, Chats.class);
                         intent.putExtra("chatRoomId", chatRoomId); // ID phòng chat
+                        intent.putExtra("managerId",currentUserId);//ID người quản lý
                         intent.putExtra("friendName", groupName);  // Tên nhóm
                         intent.putExtra("friendId", friendIds);    // Danh sách ID
                         startActivity(intent);

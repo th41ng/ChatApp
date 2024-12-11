@@ -4,11 +4,9 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.text.Editable;
 import android.text.TextWatcher;
-import android.util.Log;
 import android.view.View;
 import android.widget.EditText;
 import android.widget.ImageButton;
-import android.widget.ImageView;
 import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -36,8 +34,9 @@ public class SearchUser extends AppCompatActivity implements UserListener {
     private TextView textErrorMessage;
     private ProgressBar progressBar;
     private FirebaseFirestore database;
-    private List<User> userList = new ArrayList<>();
-    private ImageButton btnBack, btnhome, btnfriend, btnfindfriend;
+    private final List<User> userList = new ArrayList<>();
+    private ImageButton btnBack;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -59,9 +58,9 @@ public class SearchUser extends AppCompatActivity implements UserListener {
 
 
         findViewById(R.id.searchButton).setOnClickListener(view -> searchUsers());
-        btnfriend = findViewById(R.id.btnfriend);
-        btnfindfriend = findViewById(R.id.btnfindfriend);
-        btnhome= findViewById(R.id.btnhome);
+        ImageButton btnfriend = findViewById(R.id.btnfriend);
+        ImageButton btnfindfriend = findViewById(R.id.btnfindfriend);
+        ImageButton btnhome = findViewById(R.id.btnhome);
         // Gán sự kiện click cho btnfriend
         btnfriend.setOnClickListener(v -> {
             Intent intent = new Intent(getApplicationContext(), UserActivity.class);
@@ -85,7 +84,6 @@ public class SearchUser extends AppCompatActivity implements UserListener {
         searchEditText.addTextChangedListener(new TextWatcher() {
             @Override
             public void beforeTextChanged(CharSequence charSequence, int start, int count, int after) {
-                searchUsers();
             }
 
             @Override
@@ -149,9 +147,9 @@ public class SearchUser extends AppCompatActivity implements UserListener {
         }
 
         database.collection("users")
-                .orderBy("name") // Cần đảm bảo rằng bạn có chỉ mục cho trường "name"
-                .startAt(searchQuery) // Bắt đầu từ "nguoi"
-                .endAt(searchQuery + "\uf8ff") // Kết thúc tại "nguoi" với các ký tự sau
+                .orderBy("name")
+                .startAt(searchQuery)
+                .endAt(searchQuery + "\uf8ff")
                 .get()
                 .addOnCompleteListener(task -> {
                     loading(false);
@@ -166,16 +164,15 @@ public class SearchUser extends AppCompatActivity implements UserListener {
                                 }
                                 checkFriendStatus(user);
                                 userList.add(user);
-                                Toast.makeText(SearchUser.this, "tìm thấy người dùng", Toast.LENGTH_SHORT).show();
                             }
 
                             recyclerView.setAdapter(searchUserAdapter);
                             recyclerView.setVisibility(View.VISIBLE);
                         } else {
-                            Toast.makeText(SearchUser.this, "Không tìm thấy người dùng", Toast.LENGTH_SHORT).show();
+                            showErrorMessage("Không tìm thấy người dùng");
                         }
                     } else {
-                        Toast.makeText(SearchUser.this, "Lỗi tìm kiếm: " + task.getException().getMessage(), Toast.LENGTH_SHORT).show();
+                        showErrorMessage("Lỗi tìm kiếm: " + task.getException().getMessage());
                     }
                 });
     }
@@ -233,7 +230,6 @@ public class SearchUser extends AppCompatActivity implements UserListener {
         int index = userList.indexOf(user);
         if (index >= 0) {
             userList.set(index, user);
-            Log.d("///","sss"+user.getName()+user.getFriendStatus());
             searchUserAdapter.notifyItemChanged(index); // Chỉ cập nhật item cụ thể
         }
     }
@@ -243,7 +239,7 @@ public class SearchUser extends AppCompatActivity implements UserListener {
         String currentUserId = getIntent().getStringExtra("userId");
         String targetUserId = user.getUserId();
         user.setFriendStatus("none");
-        searchUserAdapter.notifyDataSetChanged();
+        finalizeUserUpdate(user);
 
         FirebaseFirestore database = FirebaseFirestore.getInstance();
         database.collection("friend_requests")
@@ -283,7 +279,7 @@ public class SearchUser extends AppCompatActivity implements UserListener {
         String currentUserId = getIntent().getStringExtra("userId");
         String targetUserId = user.getUserId();
         user.setFriendStatus("sent");
-        searchUserAdapter.notifyDataSetChanged();
+        finalizeUserUpdate(user);
 
         FirebaseFirestore database = FirebaseFirestore.getInstance();
 
@@ -301,14 +297,14 @@ public class SearchUser extends AppCompatActivity implements UserListener {
                             .document(currentUserId)
                             .set(new FriendRequest("received"))
                             .addOnSuccessListener(unused2 -> {
-                                Toast.makeText(this, "Yêu cầu kết bạn đã được gửi!", Toast.LENGTH_SHORT).show();
+                                showSuccessMessage("Yêu cầu kết bạn đã được gửi!");
                             })
                             .addOnFailureListener(e -> {
-                                Toast.makeText(this, "Gửi trạng thái nhận thất bại!", Toast.LENGTH_SHORT).show();
+                                showErrorMessage("Gửi trạng thái nhận thất bại!");
                             });
                 })
                 .addOnFailureListener(e -> {
-                    Toast.makeText(this, "Gửi yêu cầu kết bạn thất bại!", Toast.LENGTH_SHORT).show();
+                    showErrorMessage("Gửi yêu cầu kết bạn thất bại!");
                 });
     }
 }

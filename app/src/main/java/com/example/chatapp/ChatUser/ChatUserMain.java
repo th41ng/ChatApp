@@ -75,7 +75,6 @@ public class ChatUserMain extends AppCompatActivity  {
 
         initializeUI();
         loadUserDetails();
-        getToken();
         setListeners();
     }
     @Override
@@ -262,23 +261,6 @@ private void fetchMessages() {
     });
 }
 
-    private void getToken() {
-        FirebaseMessaging.getInstance().getToken().addOnSuccessListener(this::updateToken);
-    }
-
-    private void updateToken(String token) {
-        String userId = getIntent().getStringExtra("userId");
-        if (userId != null && !userId.isEmpty()) {
-            FirebaseFirestore database = FirebaseFirestore.getInstance();
-            DocumentReference documentReference = database.collection("users").document(userId);
-
-            documentReference.update("fcmToken", token)
-                    .addOnSuccessListener(unused -> showToast("Token updated successfully"))
-                    .addOnFailureListener(e -> showToast("Unable to update token"));
-        } else {
-            showToast("User ID is null or empty!");
-        }
-    }
     private void setListeners() {
         btnSignout = findViewById(R.id.btnSignout);
         btnSignout.setOnClickListener(view -> signOut());
@@ -320,15 +302,6 @@ private void fetchMessages() {
 
 
     private void signOut() {
-        String userId = currentUserID;
-        if (userId != null && !userId.isEmpty()) {
-            FirebaseFirestore database = FirebaseFirestore.getInstance();
-            DocumentReference documentReference = database.collection("users").document(userId);
-
-            documentReference.update("fcmToken", null)
-                    .addOnSuccessListener(unused -> Log.d("signOut", "Token cleared successfully"))
-                    .addOnFailureListener(e -> Log.e("signOut", "Failed to clear token", e));
-        }
         FirebaseAuth.getInstance().signOut(); // Đăng xuất khỏi Firebase
 
         // Xóa thông tin lưu trữ trong SharedPreferences

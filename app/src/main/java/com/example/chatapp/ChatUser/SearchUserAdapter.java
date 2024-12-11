@@ -137,6 +137,3 @@ public class SearchUserAdapter  extends RecyclerView.Adapter<SearchUserAdapter.U
     }
 
 }
-
-
-

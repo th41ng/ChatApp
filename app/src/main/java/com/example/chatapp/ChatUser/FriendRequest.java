@@ -31,7 +31,6 @@ public class FriendRequest extends AppCompatActivity implements UserListener{
     private ProgressBar progressBar;
     private RecyclerView usersRecyclerView;
 
-    private FriendRequestAdapter friendRequestAdapter;
     List<User> users = new ArrayList<>();
     private ImageView imageBack;
     @Override
@@ -44,7 +43,7 @@ public class FriendRequest extends AppCompatActivity implements UserListener{
         usersRecyclerView = findViewById(R.id.usersRecyclerView);
         imageBack=findViewById(R.id.btnBack);
 
-        friendRequestAdapter = new FriendRequestAdapter(users, this);
+        FriendRequestAdapter friendRequestAdapter = new FriendRequestAdapter(users, this);
         usersRecyclerView.setAdapter(friendRequestAdapter);
         usersRecyclerView.setLayoutManager(new LinearLayoutManager(this));
 
@@ -75,6 +74,7 @@ public class FriendRequest extends AppCompatActivity implements UserListener{
         String currentUserId = getIntent().getStringExtra("userId");
         users.clear(); // Xóa danh sách cũ
 
+        assert currentUserId != null;
         database.collection("friend_requests")
                 .document(currentUserId)
                 .collection("received")

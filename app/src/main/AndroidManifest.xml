@@ -47,6 +47,12 @@
             android:name=".ChatUser.ChangeProfile"
             android:exported="false" />
         <activity
+            android:name=".ChatUser.AdminRequestView"
+            android:exported="false" />
+        <activity
+            android:name=".ChatUser.AdminMain"
+            android:exported="false" />
+        <activity
             android:name=".Re_Sign.LoginActivity"
             android:exported="true">
             <intent-filter>

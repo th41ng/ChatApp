@@ -1,15 +1,18 @@
 package com.example.chatapp.ChatUser;
 
+import android.annotation.SuppressLint;
 import android.content.Context;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.TextView;
 
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
+
 
 import com.bumptech.glide.Glide;
 import com.example.chatapp.R;
@@ -18,46 +21,66 @@ import com.google.firebase.firestore.FirebaseFirestore;
 
 import java.util.List;
 
-import models.User;
+import models.AdminRequest;
 
-public class UsersAdapter extends RecyclerView.Adapter<UsersAdapter.UserViewHolder> {
-    private final List<User> users;
-    private final UserListener userListener;
+public class AdminRequestAdapter extends RecyclerView.Adapter<AdminRequestAdapter.AdminRequestViewHolder> {
 
-    public UsersAdapter(List<User> users, UserListener userListener) {
-        this.users = users;
-        this.userListener = userListener;
+    private final List<AdminRequest> adminRequestList;
+    private final AdminListener adminListener;
+
+    public AdminRequestAdapter(List<AdminRequest> adminRequestList, AdminListener adminListener) {
+        this.adminRequestList = adminRequestList;
+        this.adminListener = adminListener;
     }
-    public static class UserViewHolder extends RecyclerView.ViewHolder {
+
+    public static class AdminRequestViewHolder extends RecyclerView.ViewHolder {
         TextView textName;
-        TextView textEmail;
+        TextView textNameChange;
+        TextView textGroup;
         ImageView imageProfile;
-        UserViewHolder(View itemView) {
+        Button btnAgree,btnReject;
+
+        public AdminRequestViewHolder(@NonNull View itemView) {
             super(itemView);
             textName = itemView.findViewById(R.id.textName);
-            textEmail = itemView.findViewById(R.id.textEmail);
+            textNameChange = itemView.findViewById(R.id.textNameChange);
+            textGroup=itemView.findViewById(R.id.textGroup);
             imageProfile = itemView.findViewById(R.id.imageProfile);
+            btnAgree = itemView.findViewById(R.id.btnAgree);
+            btnReject=itemView.findViewById(R.id.btnReject);
         }
     }
-
-
     @NonNull
     @Override
-    public UserViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
-        View view = LayoutInflater.from(parent.getContext()).inflate(R.layout.friend_item_container_user, parent, false);
-        return new UserViewHolder(view);
+    public AdminRequestViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
+        View view = LayoutInflater.from(parent.getContext()).inflate(R.layout.friend_item_cointainer_admin_request, parent, false);
+        return new AdminRequestAdapter.AdminRequestViewHolder(view);
     }
 
+    @SuppressLint("SetTextI18n")
     @Override
-    public void onBindViewHolder(@NonNull UserViewHolder holder, int position) {
-        User user = users.get(position);
-        holder.textName.setText(user.getName());
-        holder.textEmail.setText(user.getEmail());
+    public void onBindViewHolder(@NonNull AdminRequestViewHolder holder, int position) {
+        AdminRequest adminRequest = adminRequestList.get(position);
+        holder.textName.setText(adminRequest.getName() + "(Manager)");
+        holder.textNameChange.setText(adminRequest.getNameChange()+ "(Changed)");
+        holder.textGroup.setText(adminRequest.getGroupName());
         // Tải ảnh từ Firestore và hiển thị
-        setImage(holder.imageProfile, user.getUserId(), holder.itemView.getContext());
+        setImage(holder.imageProfile, adminRequest.getUserId(), holder.itemView.getContext());
 
-        holder.itemView.setOnClickListener(v -> userListener.onUserClicked(user));
+
+        holder.btnAgree.setOnClickListener(view -> {
+            adminListener.onBtnAgree(adminRequest);
+            holder.btnAgree.setVisibility(View.GONE);
+            holder.btnReject.setVisibility(View.GONE);
+
+        });
+        holder.btnReject.setOnClickListener(view -> {
+            adminListener.onBtnRemove(adminRequest);
+            holder.btnAgree.setVisibility(View.GONE);
+            holder.btnReject.setVisibility(View.GONE);
+        });
     }
+
     private void setImage(ImageView imageView, String userId, Context context) {
         FirebaseFirestore db = FirebaseFirestore.getInstance();
         DocumentReference userDoc = db.collection("users").document(userId);
@@ -85,10 +108,10 @@ public class UsersAdapter extends RecyclerView.Adapter<UsersAdapter.UserViewHold
                     Log.d("FriendRequest", "Lỗi khi lấy dữ liệu Firestore", e);
                 });
     }
-
     @Override
     public int getItemCount() {
-        return users.size();
+        return adminRequestList.size();
     }
+
 
 }

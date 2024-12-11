@@ -20,6 +20,7 @@ import com.cloudinary.android.MediaManager;
 import com.cloudinary.android.callback.ErrorInfo;
 import com.cloudinary.android.callback.UploadCallback;
 import com.example.chatapp.R;
+import com.example.chatapp.Re_Sign.LoginActivity;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.firestore.DocumentReference;
@@ -32,9 +33,9 @@ import java.util.Map;
 
 
 public class ChangeProfile extends AppCompatActivity {
-    EditText fullname,email,phone,password,confirmNewPass,confirmpass;
-    Button btnSave;
-    ImageButton imageButton;
+    private EditText fullname,email,phone,password,confirmNewPass,confirmpass;
+    private Button btnSave;
+    private ImageButton imageButton;
     private ImageView imageBack;
     private FirebaseAuth mAuth;
     // Khai báo ActivityResultLauncher
@@ -48,7 +49,7 @@ public class ChangeProfile extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_change_profile);
+        setContentView(R.layout.friend_activity_change_profile);
 
         // Khởi tạo FirebaseAuth
         mAuth = FirebaseAuth.getInstance();
@@ -56,11 +57,11 @@ public class ChangeProfile extends AppCompatActivity {
         // Cấu hình Cloudinary
         Map<String, Object> config = new HashMap<>();
         config.put("cloud_name", "dq5ajyj0q"); // Tên Cloudinary
-        config.put("api_key", "683173744638424");       // API Key
+        config.put("api_key", "683173744638424"); // API Key
         config.put("api_secret", "LkEEzzQsC9AfYLfT5AG9XCOx73A"); // API Secret
 
         if (!isMediaManagerInitialized) {
-            MediaManager.init(this, config);  // Truyền cấu hình vào khi khởi tạo
+            MediaManager.init(this, config); // Truyền cấu hình vào khi khởi tạo
             isMediaManagerInitialized = true;
         }
 
@@ -72,7 +73,7 @@ public class ChangeProfile extends AppCompatActivity {
         confirmNewPass = findViewById(R.id.confirmNewPass); // Mật khẩu mới
         confirmpass = findViewById(R.id.confirmpass);
         btnSave=findViewById(R.id.btnSave);
-        imageBack=findViewById(R.id.btnBack);
+        ImageView imageBack = findViewById(R.id.btnBack);
 
         // Lấy thông tin từ Intent
         String name = getIntent().getStringExtra("name");
@@ -113,9 +114,8 @@ public class ChangeProfile extends AppCompatActivity {
             String confirmPassword = confirmpass.getText().toString().trim();
             String updatedName = fullname.getText().toString().trim();
             String updatedPhone = phone.getText().toString().trim();
-            String updatedEmail = email.getText().toString().trim();
 
-            if (updatedName.isEmpty() || updatedPhone.isEmpty() || updatedEmail.isEmpty()) {
+            if (updatedName.isEmpty() || updatedPhone.isEmpty() ) {
                 Toast.makeText(ChangeProfile.this, "Vui lòng điền đầy đủ thông tin!", Toast.LENGTH_SHORT).show();
                 return;
             }
@@ -127,18 +127,23 @@ public class ChangeProfile extends AppCompatActivity {
 
             // Cập nhật mật khẩu nếu thay đổi
             if (!oldPassword.isEmpty() && !newPassword.isEmpty()) {
-                updatePasswordWithAuth(updatedEmail, oldPassword, newPassword, updatedName, updatedPhone, updatedEmail);
+                updatePasswordWithAuth(emailUser, oldPassword, newPassword, updatedName, updatedPhone);
             } else {
                 // Nếu có ảnh đại diện mới, tải lên Cloudinary
                 if (selectedImageUri != null) { // Kiểm tra xem người dùng đã chọn ảnh chưa
-                    uploadImageToCloudinary(selectedImageUri, updatedName, updatedPhone, updatedEmail);
+                    uploadImageToCloudinary(selectedImageUri, updatedName, updatedPhone);
                 } else {
                     // Nếu không thay đổi ảnh, chỉ cập nhật thông tin người dùng
-                    updateUserInfo(userId, updatedName, updatedPhone, updatedEmail);
+                    updateUserInfo(userId, updatedName, updatedPhone);
                 }
             }
         });
 
+        setListeners();
+
+    }
+    private void setListeners(){
+        imageBack.setOnClickListener(view-> getOnBackPressedDispatcher().onBackPressed());
     }
     // Lưu URI của ảnh khi người dùng chọn ảnh
     private void pickImageLauncher() {
@@ -162,7 +167,7 @@ public class ChangeProfile extends AppCompatActivity {
         pickImageLauncher.launch(intent);
     }
     // Hàm upload ảnh lên Cloudinary và cập nhật URL ảnh vào Firestore
-    private void uploadImageToCloudinary(Uri imageUri, String updatedName, String updatedPhone, String updatedEmail) {
+    private void uploadImageToCloudinary(Uri imageUri, String updatedName, String updatedPhone ) {
         try {
             InputStream inputStream = getContentResolver().openInputStream(imageUri);
             ByteArrayOutputStream buffer = new ByteArrayOutputStream();
@@ -189,7 +194,7 @@ public class ChangeProfile extends AppCompatActivity {
                             String imageUrl = (String) resultData.get("secure_url");
                             Toast.makeText(ChangeProfile.this, "Tải ảnh thành công!", Toast.LENGTH_SHORT).show();
                             // Cập nhật URL ảnh đại diện vào Firestore
-                            updateProfileImageUrl(imageUrl, updatedName, updatedPhone, updatedEmail);
+                            updateProfileImageUrl(imageUrl, updatedName, updatedPhone);
                         }
 
                         @Override
@@ -209,7 +214,7 @@ public class ChangeProfile extends AppCompatActivity {
     }
 
     // Cập nhật URL ảnh vào Firestore
-    private void updateProfileImageUrl(String imageUrl, String updatedName, String updatedPhone, String updatedEmail) {
+    private void updateProfileImageUrl(String imageUrl, String updatedName, String updatedPhone) {
         String userId = getIntent().getStringExtra("userId");
         if (userId == null) return;
 
@@ -221,7 +226,6 @@ public class ChangeProfile extends AppCompatActivity {
         updates.put("image", imageUrl);
         updates.put("name", updatedName);
         updates.put("phone", updatedPhone);
-        updates.put("email", updatedEmail);
 
         userDoc.update(updates).addOnCompleteListener(updateTask -> {
             if (updateTask.isSuccessful()) {
@@ -259,7 +263,7 @@ public class ChangeProfile extends AppCompatActivity {
                                 imageButton.setImageResource(R.drawable.default_avatar);
                             }
                         } else {
-                            Toast.makeText(this, "Không tìm thấy dữ liệu người dùng!", Toast.LENGTH_SHORT).show();
+                            Log.d("ChangProfile", "Không tìm thấy dữ liệu người dùng!");
                         }
                     } else {
                         Toast.makeText(this, "Lỗi khi tải dữ liệu Firestore!", Toast.LENGTH_SHORT).show();
@@ -270,7 +274,7 @@ public class ChangeProfile extends AppCompatActivity {
                 });
     }
 
-    private void updatePasswordWithAuth(String email, String oldPassword, String newPassword, String updatedName, String updatedPhone, String updatedEmail) {
+    private void updatePasswordWithAuth(String email, String oldPassword, String newPassword, String updatedName, String updatedPhone) {
         String userId = getIntent().getStringExtra("userId");
         mAuth.signInWithEmailAndPassword(email, oldPassword)
                 .addOnCompleteListener(task -> {
@@ -282,7 +286,7 @@ public class ChangeProfile extends AppCompatActivity {
                                         if (updateTask.isSuccessful()) {
                                             Toast.makeText(ChangeProfile.this, "Đổi mật khẩu thành công!", Toast.LENGTH_SHORT).show();
                                             // Cập nhật thông tin người dùng sau khi đổi mật khẩu
-                                            updateUserInfo(userId, updatedName, updatedPhone, updatedEmail);
+                                            updateUserInfo(userId, updatedName, updatedPhone);
                                         } else {
                                             Toast.makeText(ChangeProfile.this, "Lỗi khi đổi mật khẩu!", Toast.LENGTH_SHORT).show();
                                         }
@@ -293,7 +297,7 @@ public class ChangeProfile extends AppCompatActivity {
                     }
                 });
     }
-    private void updateUserInfo(String userId, String name, String phone, String email) {
+    private void updateUserInfo(String userId, String name, String phone) {
         // Tham chiếu Firestore
         FirebaseFirestore db = FirebaseFirestore.getInstance();
 
@@ -301,7 +305,6 @@ public class ChangeProfile extends AppCompatActivity {
         Map<String, Object> updates = new HashMap<>();
         updates.put("name", name);
         updates.put("phone", phone);
-        updates.put("email", email);
 
         // Tham chiếu tới document của người dùng
         DocumentReference userDoc = db.collection("users").document(userId);
@@ -312,12 +315,14 @@ public class ChangeProfile extends AppCompatActivity {
                 .addOnCompleteListener(task -> {
                     btnSave.setEnabled(true);
                     if (task.isSuccessful()) {
-                        Toast.makeText(this, "Thông tin đã được cập nhật!", Toast.LENGTH_SHORT).show();
+                        Toast.makeText(this, "Thông tin đã được cập nhật và hãy đăng nhập lại!", Toast.LENGTH_SHORT).show();
+                        Intent intent = new Intent(this, LoginActivity.class);
+                        intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
+                        startActivity(intent);
+                        finish(); // Đóng MainActivity
                     } else {
                         Toast.makeText(this, "Cập nhật thất bại!", Toast.LENGTH_SHORT).show();
                     }
                 });
-
     }
-
 }
