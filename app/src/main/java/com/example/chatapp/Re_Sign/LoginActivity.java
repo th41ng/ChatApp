@@ -3,8 +3,10 @@ package com.example.chatapp.Re_Sign;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.Bundle;
+import android.text.InputType;
 import android.text.TextUtils;
 import android.util.Log;
+import android.view.MotionEvent;
 import android.view.View;
 import android.widget.Button;
 import android.widget.CheckBox;
@@ -17,6 +19,7 @@ import android.widget.Toast;
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 
+import com.example.chatapp.ChatUser.AdminMain;
 import com.example.chatapp.ChatUser.ChatUserMain;
 import com.example.chatapp.R;
 import com.google.android.gms.tasks.OnCompleteListener;
@@ -37,6 +40,7 @@ public class LoginActivity extends AppCompatActivity {
     private TextView btnRegister;
 
     private static final String TAG = "LoginActivity";
+    private static final String[] ADMIN_EMAILS = {"admin1@gmail.com", "admin2@gmail.com"};
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -84,6 +88,27 @@ public class LoginActivity extends AppCompatActivity {
                 register();
             }
         });
+        passedit.setOnTouchListener(new View.OnTouchListener() {
+            @Override
+            public boolean onTouch(View v, MotionEvent event) {
+                if (event.getAction() == MotionEvent.ACTION_UP) {
+                    // Kiểm tra xem người dùng có chạm vào biểu tượng bên phải không
+                    if (event.getRawX() >= (passedit.getRight() - passedit.getCompoundDrawables()[2].getBounds().width())) {
+                        // Toggle ẩn/hiện mật khẩu
+                        if (passedit.getInputType() == (InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_VARIATION_PASSWORD)) {
+                            passedit.setInputType(InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_VARIATION_VISIBLE_PASSWORD);
+                            passedit.setCompoundDrawablesWithIntrinsicBounds(R.drawable.baseline_lock_24, 0, R.drawable.anmatkhau, 0);
+                        } else {
+                            passedit.setInputType(InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_VARIATION_PASSWORD);
+                            passedit.setCompoundDrawablesWithIntrinsicBounds(R.drawable.baseline_lock_24, 0, R.drawable.hienmatkhau, 0);
+                        }
+                        passedit.setSelection(passedit.getText().length()); // Giữ con trỏ ở cuối
+                        return true;
+                    }
+                }
+                return false;
+            }
+        });
     }
 
     private void register() {
@@ -106,64 +131,90 @@ public class LoginActivity extends AppCompatActivity {
             public void onComplete(@NonNull Task<AuthResult> task) {
                 if (task.isSuccessful()) {
                     Toast.makeText(getApplicationContext(), "Đăng nhập thành công", Toast.LENGTH_SHORT).show();
-                    rememberUser(email, pass, chkRememberPass.isChecked()); // Lưu trạng thái đăng nhập nếu chọn ghi nhớ
 
                     // Lấy FirebaseUser hiện tại
                     FirebaseUser user = mAuth.getCurrentUser();
 
                     if (user != null) {
-                        // Truy vấn Firestore để lấy thông tin người dùng
+                        String userId = user.getUid();
                         FirebaseFirestore db = FirebaseFirestore.getInstance();
-                        DocumentReference userRef = db.collection("users").document(user.getUid());
 
-                        userRef.get()
+                        // Kiểm tra nếu là admin
+                        db.collection("admins").document(userId).get()
                                 .addOnCompleteListener(new OnCompleteListener<DocumentSnapshot>() {
                                     @Override
                                     public void onComplete(@NonNull Task<DocumentSnapshot> task1) {
-                                        if (task1.isSuccessful()) {
-                                            DocumentSnapshot documentSnapshot = task1.getResult();
-                                            if (documentSnapshot.exists()) {
-                                                // Lấy thông tin người dùng từ Firestore
-                                                String userId = user.getUid();
-                                                String name = documentSnapshot.getString("name");
-                                                String image = documentSnapshot.getString("image");
-                                                String phone = documentSnapshot.getString("phone");
-                                                String email = documentSnapshot.getString("email");
-
-                                                // Chuyển dữ liệu sang ChatUserMain qua Intent
-                                                Intent intent = new Intent(LoginActivity.this, ChatUserMain.class);
-                                                intent.putExtra("userId", userId);
-                                                intent.putExtra("name", name);
-                                                intent.putExtra("image", image);
-                                                intent.putExtra("phone", phone);
-                                                intent.putExtra("email", email);
-
-                                                // Chuyển sang ChatUserMain
-                                                startActivity(intent);
+                                        if (task1.isSuccessful() && task1.getResult() != null) {
+                                            DocumentSnapshot adminSnapshot = task1.getResult();
+                                            if (adminSnapshot.exists()) {
+                                                // Nếu tồn tại trong collection "admins"
+                                                Log.d(TAG, "Đăng nhập với vai trò Admin");
+                                                Intent adminIntent = new Intent(LoginActivity.this, AdminMain.class);
+                                                startActivity(adminIntent);
                                                 finish();
                                             } else {
-                                                Log.d("Firestore", "Không có thông tin người dùng!");
-                                                Toast.makeText(getApplicationContext(), "Không tìm thấy thông tin người dùng!", Toast.LENGTH_SHORT).show();
+                                                // Nếu không phải admin, tìm trong collection "users"
+                                                db.collection("users").document(userId).get()
+                                                        .addOnCompleteListener(new OnCompleteListener<DocumentSnapshot>() {
+                                                            @Override
+                                                            public void onComplete(@NonNull Task<DocumentSnapshot> task2) {
+                                                                if (task2.isSuccessful() && task2.getResult() != null) {
+                                                                    DocumentSnapshot userSnapshot = task2.getResult();
+                                                                    if (userSnapshot.exists()) {
+                                                                        // ** Kiểm tra trạng thái vô hiệu hóa **
+                                                                        Boolean disabled = userSnapshot.getBoolean("disabled");
+                                                                        if (Boolean.TRUE.equals(disabled)) {
+                                                                            Toast.makeText(getApplicationContext(), "Tài khoản của bạn đã bị vô hiệu hóa!", Toast.LENGTH_SHORT).show();
+                                                                        } else {
+
+                                                                            Log.d(TAG, "Đăng nhập với vai trò User");
+
+                                                                            String name = userSnapshot.getString("name");
+                                                                            String phone = userSnapshot.getString("phone");
+                                                                            String image = userSnapshot.getString("image");
+
+                                                                            Intent intent = new Intent(LoginActivity.this, ChatUserMain.class);
+                                                                            intent.putExtra("userId", userId);
+                                                                            intent.putExtra("name", name);
+                                                                            intent.putExtra("phone", phone);
+                                                                            intent.putExtra("image", image);
+                                                                            startActivity(intent);
+                                                                            finish();
+                                                                        }
+                                                                    } else {
+                                                                        Toast.makeText(getApplicationContext(), "Không tìm thấy thông tin người dùng!", Toast.LENGTH_SHORT).show();
+                                                                    }
+                                                                } else {
+                                                                    Log.e(TAG, "Lỗi khi truy vấn người dùng: ", task2.getException());
+                                                                    Toast.makeText(getApplicationContext(), "Lỗi khi truy vấn người dùng!", Toast.LENGTH_SHORT).show();
+                                                                }
+                                                            }
+                                                        });
                                             }
                                         } else {
-                                            Log.e("Firestore", "Lỗi trong việc lấy thông tin: ", task1.getException());
-                                            Toast.makeText(getApplicationContext(), "Lỗi khi truy vấn dữ liệu!", Toast.LENGTH_SHORT).show();
+                                            Log.e(TAG, "Lỗi khi truy vấn admin: ", task1.getException());
+                                            Toast.makeText(getApplicationContext(), "Lỗi khi truy vấn admin!", Toast.LENGTH_SHORT).show();
                                         }
                                     }
                                 });
                     } else {
-                        Log.e("Auth", "Người dùng chưa đăng nhập!");
+                        Log.e(TAG, "Người dùng chưa đăng nhập!");
                         Toast.makeText(getApplicationContext(), "Người dùng chưa đăng nhập. Vui lòng đăng nhập lại.", Toast.LENGTH_SHORT).show();
                     }
-
-
                 } else {
                     Toast.makeText(getApplicationContext(), "Đăng nhập không thành công!", Toast.LENGTH_SHORT).show();
                 }
             }
         });
     }
-
+    private boolean isAdmin(String email) {
+        for (String adminEmail : ADMIN_EMAILS) {
+            if (adminEmail.equals(email)) {
+                return true;
+            }
+        }
+        return false;
+    }
     // Phương thức lưu thông tin người dùng vào SharedPreferences
     public void rememberUser(String email, String pass, boolean rememberStatus) {
         SharedPreferences sharedPreferences = getSharedPreferences("USER_FILE.xml", MODE_PRIVATE);

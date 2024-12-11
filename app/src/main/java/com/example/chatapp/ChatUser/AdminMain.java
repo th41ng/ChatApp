@@ -126,27 +126,35 @@ public class AdminMain extends AppCompatActivity implements UserListener{
                 .get()
                 .addOnCompleteListener(task -> {
                     if (task.isSuccessful() && task.getResult() != null) {
-                        int totalUsers = task.getResult().size(); // Tổng số user
-                        txtSoUser.setText("Tổng số user: " + totalUsers);
-
                         List<User> users = new ArrayList<>();
+                        int totalUsers = 0; // Biến này dùng để tính tổng số người dùng hợp lệ
+
                         for (QueryDocumentSnapshot queryDocumentSnapshot : task.getResult()) {
-                            User user = queryDocumentSnapshot.toObject(User.class);
-                            user.setUserId(queryDocumentSnapshot.getId());
-                            users.add(user);
+                            Boolean disabled = queryDocumentSnapshot.getBoolean("disabled");
+
+                            // Chỉ lấy người dùng không bị vô hiệu hóa
+                            if (Boolean.FALSE.equals(disabled)) {
+                                User user = queryDocumentSnapshot.toObject(User.class);
+                                user.setUserId(queryDocumentSnapshot.getId());
+                                users.add(user);
+                                totalUsers++; // Tăng số lượng người dùng hợp lệ
+                            }
                         }
 
-                        // Hiển thị danh sách
+                        // Cập nhật giao diện người dùng
+                        txtSoUser.setText("Tổng số user: " + totalUsers); // Cập nhật số lượng người dùng hợp lệ
+
+                        // Hiển thị danh sách người dùng
                         if (!users.isEmpty()) {
                             UsersAdapter usersAdapter = new UsersAdapter(users, this);
                             usersRecyclerView.setLayoutManager(new LinearLayoutManager(this));
                             usersRecyclerView.setAdapter(usersAdapter);
                             usersRecyclerView.setVisibility(View.VISIBLE);
                         } else {
-                            Log.d("AdminMain","Không có người dùng");
+                            Log.d("AdminMain", "Không có người dùng hợp lệ");
                         }
                     } else {
-                        Log.d("AdminMain","Cập nhật người dùng không thành công");
+                        Log.d("AdminMain", "Cập nhật người dùng không thành công");
                     }
                 });
     }
@@ -186,7 +194,7 @@ public class AdminMain extends AppCompatActivity implements UserListener{
     @Override
     public void onUserClicked(User user) {
         // Tạo một danh sách các lựa chọn
-        String[] options = {"Vô hiệu hóa tài khoản","Thay đổi thông tin tài khoản", "Chuyển vai trò","Xem thông tin chi tiết", "Hủy"};
+        String[] options = {"Vô hiệu hóa tài khoản","Thay đổi thông tin tài khoản","Xem thông tin chi tiết", "Hủy"};
 
         // Hiển thị AlertDialog
         new AlertDialog.Builder(this)
@@ -194,6 +202,25 @@ public class AdminMain extends AppCompatActivity implements UserListener{
                 .setItems(options, (dialog, which) -> {
                     switch (which) {
                         case 0: // Vô hiệu hóa tài khoản
+                            new AlertDialog.Builder(this)
+                                    .setTitle("Xác nhận vô hiệu hóa")
+                                    .setMessage("Bạn có chắc muốn vô hiệu hóa tài khoản của " + user.getName() + " không?")
+                                    .setPositiveButton("Vô hiệu hóa", (dialogInterface, i) -> {
+                                        FirebaseFirestore database = FirebaseFirestore.getInstance();
+                                        DocumentReference userRef = database.collection("users").document(user.getUserId());
+
+                                        // Cập nhật trạng thái "disabled" của tài khoản
+                                        userRef.update("disabled", true)
+                                                .addOnSuccessListener(unused -> {
+                                                    Toast.makeText(AdminMain.this, "Tài khoản đã bị vô hiệu hóa", Toast.LENGTH_SHORT).show();
+                                                    getAllUsers(); // Làm mới danh sách người dùng
+                                                })
+                                                .addOnFailureListener(e -> {
+                                                    Toast.makeText(AdminMain.this, "Lỗi khi vô hiệu hóa tài khoản: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+                                                });
+                                    })
+                                    .setNegativeButton("Hủy", (dialogInterface, i) -> dialogInterface.dismiss())
+                                    .show();
                             break;
                         case 1://Thay đổi thông tin tài khoản
                             Intent intent=new Intent(getApplicationContext(), ChangeProfile.class);
@@ -204,9 +231,7 @@ public class AdminMain extends AppCompatActivity implements UserListener{
                             intent.putExtra("userId",user.getUserId());
                             startActivity(intent);
                             break;
-                        case 2://Chuyển vai trò
-                            break;
-                        case 3: // Xem thông tin chi tiết
+                        case 2: // Xem thông tin chi tiết
                             Intent intent3=new Intent(getApplicationContext(), UserInfor.class);
                             intent3.putExtra("name", user.getName());
                             intent3.putExtra("image", user.getImage());
@@ -215,7 +240,7 @@ public class AdminMain extends AppCompatActivity implements UserListener{
                             intent3.putExtra("userId",user.getUserId());
                             startActivity(intent3);
                             break;
-                        case 4: // Hủy
+                        case 3: // Hủy
                             dialog.dismiss();
                             break;
                     }

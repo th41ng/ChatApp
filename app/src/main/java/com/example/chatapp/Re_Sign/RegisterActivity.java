@@ -3,8 +3,10 @@ package com.example.chatapp.Re_Sign;
 import android.annotation.SuppressLint;
 import android.content.Intent;
 import android.os.Bundle;
+import android.text.InputType;
 import android.text.TextUtils;
 import android.util.Log;
+import android.view.MotionEvent;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
@@ -27,6 +29,7 @@ import java.util.HashMap;
 public class RegisterActivity extends AppCompatActivity {
 
     private EditText mname, emailedit, passedit, mphone;
+    private EditText confirmPassEdit;
     private FirebaseFirestore db;
     private Button btnRegister;
     private FirebaseAuth mAuth;
@@ -47,6 +50,7 @@ public class RegisterActivity extends AppCompatActivity {
         emailedit = findViewById(R.id.email);
         mname = findViewById(R.id.fullname);
         passedit = findViewById(R.id.password);
+        confirmPassEdit = findViewById(R.id.confirmpass);
         mphone = findViewById(R.id.phone);
         btnRegister = findViewById(R.id.btnRegister);
 
@@ -56,11 +60,52 @@ public class RegisterActivity extends AppCompatActivity {
                 register();
             }
         });
+        // Xử lý sự kiện chạm để ẩn/hiện mật khẩu
+        passedit.setOnTouchListener(new View.OnTouchListener() {
+            @Override
+            public boolean onTouch(View v, MotionEvent event) {
+                if (event.getAction() == MotionEvent.ACTION_UP) {
+                    if (event.getRawX() >= (passedit.getRight() - passedit.getCompoundDrawables()[2].getBounds().width())) {
+                        if (passedit.getInputType() == (InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_VARIATION_PASSWORD)) {
+                            passedit.setInputType(InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_VARIATION_VISIBLE_PASSWORD);
+                            passedit.setCompoundDrawablesWithIntrinsicBounds(R.drawable.baseline_lock_24, 0, R.drawable.anmatkhau, 0);
+                        } else {
+                            passedit.setInputType(InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_VARIATION_PASSWORD);
+                            passedit.setCompoundDrawablesWithIntrinsicBounds(R.drawable.baseline_lock_24, 0, R.drawable.hienmatkhau, 0);
+                        }
+                        passedit.setSelection(passedit.getText().length());
+                        return true;
+                    }
+                }
+                return false;
+            }
+        });
+
+        confirmPassEdit.setOnTouchListener(new View.OnTouchListener() {
+            @Override
+            public boolean onTouch(View v, MotionEvent event) {
+                if (event.getAction() == MotionEvent.ACTION_UP) {
+                    if (event.getRawX() >= (confirmPassEdit.getRight() - confirmPassEdit.getCompoundDrawables()[2].getBounds().width())) {
+                        if (confirmPassEdit.getInputType() == (InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_VARIATION_PASSWORD)) {
+                            confirmPassEdit.setInputType(InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_VARIATION_VISIBLE_PASSWORD);
+                            confirmPassEdit.setCompoundDrawablesWithIntrinsicBounds(R.drawable.baseline_lock_24, 0, R.drawable.anmatkhau, 0);
+                        } else {
+                            confirmPassEdit.setInputType(InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_VARIATION_PASSWORD);
+                            confirmPassEdit.setCompoundDrawablesWithIntrinsicBounds(R.drawable.baseline_lock_24, 0, R.drawable.hienmatkhau, 0);
+                        }
+                        confirmPassEdit.setSelection(confirmPassEdit.getText().length());
+                        return true;
+                    }
+                }
+                return false;
+            }
+        });
     }
 
     private void register() {
         String email = emailedit.getText().toString();
         String pass = passedit.getText().toString();
+        String confirmPass = confirmPassEdit.getText().toString();
         String name = mname.getText().toString();
         String phone = mphone.getText().toString();
 
@@ -69,8 +114,21 @@ public class RegisterActivity extends AppCompatActivity {
             Toast.makeText(this, "Vui lòng nhập email!", Toast.LENGTH_SHORT).show();
             return;
         }
+        // Kiểm tra xem email có phải là của admin không
+        if (email.equalsIgnoreCase("admin1@gmail.com") || email.equalsIgnoreCase("admin2@gmail.com")) {
+            Toast.makeText(this, "Email này không thể đăng ký.", Toast.LENGTH_SHORT).show();
+            return;
+        }
         if (TextUtils.isEmpty(pass)) {
             Toast.makeText(this, "Vui lòng nhập mật khẩu!", Toast.LENGTH_SHORT).show();
+            return;
+        }
+        if (TextUtils.isEmpty(confirmPass)) {
+            Toast.makeText(this, "Vui lòng nhập lại mật khẩu!", Toast.LENGTH_SHORT).show();
+            return;
+        }
+        if (!pass.equals(confirmPass)) {
+            Toast.makeText(this, "Mật khẩu không khớp!", Toast.LENGTH_SHORT).show();
             return;
         }
         if (TextUtils.isEmpty(name) || TextUtils.isEmpty(phone)) {
@@ -95,6 +153,7 @@ public class RegisterActivity extends AppCompatActivity {
                 }
             }
         });
+
     }
 
     private void saveUserToFirestore(String name, String email, String phone) {
