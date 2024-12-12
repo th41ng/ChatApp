@@ -310,6 +310,14 @@ private void fetchMessages() {
         editor.clear(); // Xóa toàn bộ dữ liệu trong file SharedPreferences
         editor.apply();
 
+        DatabaseReference userStatusRef = FirebaseDatabase.getInstance()
+                .getReference("users")
+                .child(currentUserID)
+                .child("status");
+
+        // Lắng nghe sự kiện khi mất kết nối
+        userStatusRef.setValue("offline");
+
         // Chuyển về màn hình đăng nhập
         Intent intent = new Intent(getApplicationContext(), LoginActivity.class);
         startActivity(intent);

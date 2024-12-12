@@ -61,21 +61,27 @@ public class SearchUser extends AppCompatActivity implements UserListener {
         ImageButton btnfriend = findViewById(R.id.btnfriend);
         ImageButton btnfindfriend = findViewById(R.id.btnfindfriend);
         ImageButton btnhome = findViewById(R.id.btnhome);
+
+        String userId = getIntent().getStringExtra("userId");
+
         // Gán sự kiện click cho btnfriend
         btnfriend.setOnClickListener(v -> {
             Intent intent = new Intent(getApplicationContext(), UserActivity.class);
+            intent.putExtra("userId",userId);
             startActivity(intent);
         });
 
         // Gán sự kiện click cho btnfindfriend
         btnfindfriend.setOnClickListener(v -> {
             Intent intent = new Intent(getApplicationContext(), SearchUser.class);
+            intent.putExtra("userId",userId);
             startActivity(intent);
         });
 
         // Gán sự kiện click cho btnhome
         btnhome.setOnClickListener(v -> {
             Intent intent = new Intent(getApplicationContext(), ChatUserMain.class);
+            intent.putExtra("userId",userId);
             startActivity(intent);
         });
 

@@ -55,23 +55,25 @@ public class UserActivity extends AppCompatActivity implements UserListener{
 
         btnfriend.setOnClickListener(v -> {
             Intent intent = new Intent(getApplicationContext(), UserActivity.class);
+            intent.putExtra("userId",currentUserID);
             startActivity(intent);
         });
 
         // Gán sự kiện click cho btnfindfriend
         btnfindfriend.setOnClickListener(v -> {
             Intent intent = new Intent(getApplicationContext(), SearchUser.class);
+            intent.putExtra("userId",currentUserID);
             startActivity(intent);
         });
 
         // Gán sự kiện click cho btnhome
         btnhome.setOnClickListener(v -> {
             Intent intent = new Intent(getApplicationContext(), ChatUserMain.class);
+            intent.putExtra("userId",currentUserID);
             startActivity(intent);
         });
         btncreategr.setOnClickListener(v -> {
             Intent intent = new Intent(getApplicationContext(), groupChat.class);
-
             intent.putExtra("userId",currentUserID);
             startActivity(intent);
         });

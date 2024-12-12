@@ -60,21 +60,17 @@ public class UserInfor extends AppCompatActivity {
 
     }
     private void capNhatTrangThaiUser(String userID){
-        DatabaseReference usersRef = FirebaseDatabase.getInstance().getReference("users").child(userID);
+        DatabaseReference usersRef = FirebaseDatabase.getInstance().getReference("users").child(userID).child("status");
 
         usersRef.addValueEventListener(new ValueEventListener() {
             @Override
             public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
-                for (DataSnapshot userSnapshot : dataSnapshot.getChildren()) {
-                    String status = userSnapshot.child("status").getValue(String.class); // Trạng thái
-
-                    // Xử lý trạng thái người dùng
-                    if (status!=null && status.equals("online")) {
-                         viewStatus.setBackgroundResource(R.drawable.status_online_circle);// Hình tròn xanh
-                    } else {
-                        viewStatus.setBackgroundResource(R.drawable.status_offline_circle); // Hình tròn xám
-                    }
-
+                String status = dataSnapshot.getValue(String.class);
+                // Xử lý trạng thái người dùng
+                if (status!=null && status.equals("online")) {
+                    viewStatus.setBackgroundResource(R.drawable.status_online_circle);// Hình tròn xanh
+                } else {
+                    viewStatus.setBackgroundResource(R.drawable.status_offline_circle); // Hình tròn xám
                 }
             }
 

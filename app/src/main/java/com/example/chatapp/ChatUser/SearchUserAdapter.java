@@ -70,14 +70,14 @@ public class SearchUserAdapter  extends RecyclerView.Adapter<SearchUserAdapter.U
         } else {
             holder.btnAddFriend.setVisibility(View.VISIBLE);
             switch (user.getFriendStatus()) {
-//                case "friend":
-//                    holder.btnAddFriend.setText("Nhắn tin");
-//                    holder.btnAddFriend.setBackgroundColor(ContextCompat.getColor(holder.itemView.getContext(), R.color.primary));
-//                    holder.btnAddFriend.setOnClickListener(v -> {
-//                        userListener.onUserClicked(user);
-//                    });
-//                    break;
                 case "friend":
+                    holder.btnAddFriend.setText("Nhắn tin");
+                    holder.btnAddFriend.setBackgroundColor(ContextCompat.getColor(holder.itemView.getContext(), R.color.primary));
+                    holder.btnAddFriend.setOnClickListener(v -> {
+                        userListener.onUserClicked(user);
+                    });
+                    break;
+                case "sent":
                     holder.btnAddFriend.setText("Hủy kết bạn");
                     holder.btnAddFriend.setBackgroundColor(ContextCompat.getColor(holder.itemView.getContext(), R.color.red));
                     holder.btnAddFriend.setOnClickListener(view -> {
