@@ -8,14 +8,10 @@ public class User implements Serializable {
     private String image;
     private String email;
 
-<<<<<<< HEAD
     public User(String participantId, String participantName) {
         this.userId = participantId;
         this.name = participantName;
     }
-
-=======
->>>>>>> e70a665167aca2867e792edd81f20948c1d9d815
     public String getPhone() {
         return phone;
     }

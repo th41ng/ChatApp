@@ -1,23 +1,12 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
-<<<<<<< HEAD
-
-    android:name="com.android.launcher.permission.INSTALL_SHORTCUT" >
-=======
     android:name="com.android.launcher.permission.INSTALL_SHORTCUT">
->>>>>>> e70a665167aca2867e792edd81f20948c1d9d815
-
     <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
     <uses-permission android:name="android.permission.READ_MEDIA_IMAGES" />
     <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
-<<<<<<< HEAD
-=======
-
-
->>>>>>> e70a665167aca2867e792edd81f20948c1d9d815
     <application
         android:allowBackup="true"
         android:dataExtractionRules="@xml/data_extraction_rules"
@@ -27,14 +16,10 @@
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         android:theme="@style/Theme.ChatApp"
-<<<<<<< HEAD
         tools:targetApi="31" >
         <activity
             android:name=".Chat.ChatInfo"
             android:exported="false" />
-=======
-        tools:targetApi="31">
->>>>>>> e70a665167aca2867e792edd81f20948c1d9d815
         <activity
             android:name=".Chat.groupChat"
             android:exported="false" />
@@ -51,11 +36,7 @@
             android:name=".ChatUser.ChatUserMain"
             android:exported="false" />
         <activity
-<<<<<<< HEAD
             android:name=".Chat.searchInChat"
-=======
-            android:name=".Chat.InfoChat"
->>>>>>> e70a665167aca2867e792edd81f20948c1d9d815
             android:exported="false" />
         <activity
             android:name=".Chat.Chats"
@@ -78,11 +59,7 @@
             android:exported="false" />
         <activity
             android:name=".Re_Sign.LoginActivity"
-<<<<<<< HEAD
             android:exported="true" >
-=======
-            android:exported="true">
->>>>>>> e70a665167aca2867e792edd81f20948c1d9d815
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 

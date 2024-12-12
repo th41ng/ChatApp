@@ -21,6 +21,10 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+
+>>>>>>> e70a665167aca2867e792edd81f20948c1d9d815
 =======
 
 >>>>>>> e70a665167aca2867e792edd81f20948c1d9d815
@@ -81,11 +85,7 @@ public class Chats extends AppCompatActivity implements UserListener {
     private TextView istyping;
     private TextView onl;
     private ImageButton btnBack;
-<<<<<<< HEAD
     ArrayList<String> participantsList = new ArrayList<>();
-=======
-
->>>>>>> e70a665167aca2867e792edd81f20948c1d9d815
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -225,28 +225,17 @@ public class Chats extends AppCompatActivity implements UserListener {
                     if (!dataSnapshot.exists()) {
                         // Tạo nhóm chat mới
                         Map<String, Object> chatRoomInfo = new HashMap<>();
-<<<<<<< HEAD
+
 
                         chatRoomInfo.put("groupName", friendName); // Tên nhóm chat mặc định
 
-=======
-                        chatRoomInfo.put("groupName", "New Group Chat"); // Tên nhóm chat mặc định
->>>>>>> e70a665167aca2867e792edd81f20948c1d9d815
                         chatRoomInfo.put("timestamp", System.currentTimeMillis());
                         chatRoomInfo.put("chatRoomOwner", currentUserId);
                         // Danh sách người tham gia nhóm
                         String[] participantsArray = friendId.split(",");
-<<<<<<< HEAD
                         for (String participant : participantsArray) {
                             participantsList.add(participant.trim());
                         }
-=======
-                        List<String> participantsList = new ArrayList<>();
-                        for (String participant : participantsArray) {
-                            participantsList.add(participant.trim());
-                        }
-
->>>>>>> e70a665167aca2867e792edd81f20948c1d9d815
                         chatRoomInfo.put("participants", participantsList);
 
                         chatRoomRef.setValue(chatRoomInfo).addOnCompleteListener(task -> {
@@ -452,13 +441,7 @@ public class Chats extends AppCompatActivity implements UserListener {
 //kết thúc code load tin nhắn để hiện lên
 
 
-<<<<<<< HEAD
-
 //Code kiểm tra trạng thái đang nhập
-
-=======
-//Code kiểm tra trạng thái đang nhập
->>>>>>> e70a665167aca2867e792edd81f20948c1d9d815
     private void setTypingStatus(boolean isTyping) {
         DatabaseReference typingStatusRef = FirebaseDatabase.getInstance()
                 .getReference("chatRooms")
@@ -533,12 +516,8 @@ public class Chats extends AppCompatActivity implements UserListener {
     private void activityInfoChatBtn(){
         // Tạo một danh sách các lựa chọn
         if(friendId.startsWith("GROUP_")){
-<<<<<<< HEAD
-
             String[] options = { "Thông tin nhóm","Tìm kiếm tin nhắn trong nhóm","Chuyển vai trò quản lý", "Hủy"};
-=======
-            String[] options = { "Tìm kiếm tin nhắn trong nhóm","Chuyển vai trò quản lý", "Hủy"};
->>>>>>> e70a665167aca2867e792edd81f20948c1d9d815
+
 
             // Hiển thị AlertDialog
             new AlertDialog.Builder(this)
@@ -546,7 +525,6 @@ public class Chats extends AppCompatActivity implements UserListener {
                     .setItems(options, (dialog, which) -> {
                         switch (which) {
                             case 0:
-<<<<<<< HEAD
                                 Intent intentTT = new Intent(Chats.this, ChatInfo.class);
                                 intentTT.putExtra("chatRoomId", chatRoomId);
                                 intentTT.putExtra("groupName", friendName); // Tên nhóm
@@ -556,24 +534,14 @@ public class Chats extends AppCompatActivity implements UserListener {
                                 break;
                             case 1:
                                 Intent intent = new Intent(Chats.this, searchInChat.class);
-=======
-                                Intent intent = new Intent(Chats.this, InfoChat.class);
->>>>>>> e70a665167aca2867e792edd81f20948c1d9d815
                                 intent.putExtra("chatRoomId", chatRoomId);
                                 intent.putExtra("friendId", friendId);
                                 intent.putExtra("friendName", friendName);
                                 startActivity(intent);
                                 break;
-<<<<<<< HEAD
                             case 2:
                                 // Khởi tạo tham chiếu đến Firestore
                                 FirebaseFirestore db = FirebaseFirestore.getInstance();
-=======
-                            case 1:
-                                // Khởi tạo tham chiếu đến Firestore
-                                FirebaseFirestore db = FirebaseFirestore.getInstance();
-
->>>>>>> e70a665167aca2867e792edd81f20948c1d9d815
                                 // Truy vấn vào collection "chatRooms"
                                 db.collection("chatRooms")
                                         .document(chatRoomId)
@@ -599,11 +567,8 @@ public class Chats extends AppCompatActivity implements UserListener {
                                             }
                                         });
                                 break;
-<<<<<<< HEAD
+
                             case 3: // Hủy
-=======
-                            case 2: // Hủy
->>>>>>> e70a665167aca2867e792edd81f20948c1d9d815
                                 dialog.dismiss();
                                 break;
                         }
@@ -611,13 +576,7 @@ public class Chats extends AppCompatActivity implements UserListener {
                     .show();
         }
         else {
-<<<<<<< HEAD
-
             Intent intent = new Intent(Chats.this, searchInChat.class);
-
-=======
-            Intent intent = new Intent(Chats.this, InfoChat.class);
->>>>>>> e70a665167aca2867e792edd81f20948c1d9d815
             intent.putExtra("chatRoomId", chatRoomId);
             intent.putExtra("friendId", friendId);
             intent.putExtra("friendName", friendName);
