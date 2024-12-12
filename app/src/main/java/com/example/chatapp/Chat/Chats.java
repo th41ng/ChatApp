@@ -20,18 +20,7 @@ import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
-<<<<<<< HEAD
-<<<<<<< HEAD
-=======
-
->>>>>>> e70a665167aca2867e792edd81f20948c1d9d815
-=======
-
->>>>>>> e70a665167aca2867e792edd81f20948c1d9d815
 import com.cloudinary.android.callback.ErrorInfo;
-import com.example.chatapp.ChatUser.ChangeProfile;
-import com.example.chatapp.ChatUser.ChatUserMain;
-import com.example.chatapp.ChatUser.UserInfor;
 import com.example.chatapp.ChatUser.UserListener;
 import com.example.chatapp.ChatUser.UsersAdapter;
 import com.example.chatapp.CloudinaryManager;
@@ -225,10 +214,7 @@ public class Chats extends AppCompatActivity implements UserListener {
                     if (!dataSnapshot.exists()) {
                         // Tạo nhóm chat mới
                         Map<String, Object> chatRoomInfo = new HashMap<>();
-
-
                         chatRoomInfo.put("groupName", friendName); // Tên nhóm chat mặc định
-
                         chatRoomInfo.put("timestamp", System.currentTimeMillis());
                         chatRoomInfo.put("chatRoomOwner", currentUserId);
                         // Danh sách người tham gia nhóm
@@ -237,7 +223,6 @@ public class Chats extends AppCompatActivity implements UserListener {
                             participantsList.add(participant.trim());
                         }
                         chatRoomInfo.put("participants", participantsList);
-
                         chatRoomRef.setValue(chatRoomInfo).addOnCompleteListener(task -> {
                             if (task.isSuccessful()) {
                                 sendWelcomeMessage(chatRoomId);
@@ -525,13 +510,19 @@ public class Chats extends AppCompatActivity implements UserListener {
                     .setItems(options, (dialog, which) -> {
                         switch (which) {
                             case 0:
-                                Intent intentTT = new Intent(Chats.this, ChatInfo.class);
-                                intentTT.putExtra("chatRoomId", chatRoomId);
-                                intentTT.putExtra("groupName", friendName); // Tên nhóm
-                                //intentTT.putExtra("participants", friendId);
-                                intentTT.putExtra("chatRoomOwner",currentUserId);
-                                startActivity(intentTT);
+                                checkChatRoomOwner(chatRoomId,
+                                        () -> { // Nếu là chủ phòng
+                                            Intent intentTT = new Intent(Chats.this, ChatInfo.class);
+                                            intentTT.putExtra("chatRoomId", chatRoomId);
+                                            intentTT.putExtra("groupName", friendName); // Tên nhóm
+                                            intentTT.putExtra("chatRoomOwner", currentUserId);
+                                            startActivity(intentTT);
+                                        },
+                                        () -> { // Nếu không phải chủ phòng
+                                            Toast.makeText(Chats.this, "Bạn không có quyền truy cập vào thông tin nhóm.", Toast.LENGTH_SHORT).show();
+                                        });
                                 break;
+
                             case 1:
                                 Intent intent = new Intent(Chats.this, searchInChat.class);
                                 intent.putExtra("chatRoomId", chatRoomId);
@@ -539,32 +530,14 @@ public class Chats extends AppCompatActivity implements UserListener {
                                 intent.putExtra("friendName", friendName);
                                 startActivity(intent);
                                 break;
+
                             case 2:
-                                // Khởi tạo tham chiếu đến Firestore
-                                FirebaseFirestore db = FirebaseFirestore.getInstance();
-                                // Truy vấn vào collection "chatRooms"
-                                db.collection("chatRooms")
-                                        .document(chatRoomId)
-                                        .get()
-                                        .addOnCompleteListener(task -> {
-                                            if (task.isSuccessful()) {
-                                                DocumentSnapshot document = task.getResult();
-                                                if (document.exists()) {
-                                                    // Lấy giá trị của "managerId"
-                                                    String managerId = document.getString("managerId");
-                                                    Log.d("Manager ID", "Manager ID: " + managerId);
-                                                    if(currentUserId.equals(managerId)){
-                                                        userChangeManager();
-                                                    }
-                                                    else {
-                                                        Toast.makeText(this,"Bạn không có quyền thay đổi quản lý",Toast.LENGTH_SHORT).show();
-                                                    }
-                                                } else {
-                                                    Log.d("Firestore", "Không tồn tại dữ liệu!");
-                                                }
-                                            } else {
-                                                Log.e("Firestore", "Lỗi lấy dữ liệu", task.getException());
-                                            }
+                                checkChatRoomOwner(chatRoomId,
+                                        () -> { // Nếu là chủ phòng
+                                            userChangeManager(); // Gọi hàm xử lý nếu người dùng là quản lý
+                                        },
+                                        () -> { // Nếu không phải chủ phòng
+                                            Toast.makeText(Chats.this, "Bạn không có quyền thay đổi quản lý.", Toast.LENGTH_SHORT).show();
                                         });
                                 break;
 
@@ -584,45 +557,93 @@ public class Chats extends AppCompatActivity implements UserListener {
         }
 
     }
+
+
+    private void checkChatRoomOwner(String chatRoomId, Runnable onOwnerAction, Runnable onNotOwnerAction) {
+        DatabaseReference dbRef = FirebaseDatabase.getInstance().getReference();
+        dbRef.child("chatRooms").child(chatRoomId).child("chatRoomOwner")
+                .addListenerForSingleValueEvent(new ValueEventListener() {
+                    @Override
+                    public void onDataChange(@NonNull DataSnapshot snapshot) {
+                        if (snapshot.exists()) {
+                            // Lấy giá trị của "chatRoomOwner"
+                            String chatRoomOwner = snapshot.getValue(String.class);
+                            Log.d("ChatRoomOwner", "Chat Room Owner: " + chatRoomOwner);
+                            if (currentUserId.equals(chatRoomOwner)) {
+                                if (onOwnerAction != null) onOwnerAction.run(); // Hành động khi là chủ phòng
+                            } else {
+                                if (onNotOwnerAction != null) onNotOwnerAction.run(); // Hành động khi không phải chủ phòng
+                            }
+                        } else {
+                            Log.d("RealtimeDatabase", "Không tồn tại dữ liệu chatRoomOwner!");
+                            if (onNotOwnerAction != null) onNotOwnerAction.run();
+                        }
+                    }
+
+                    @Override
+                    public void onCancelled(@NonNull DatabaseError error) {
+                        Log.e("RealtimeDatabase", "Lỗi khi lấy dữ liệu", error.toException());
+                    }
+                });
+    }
+
+
+
+
     private void userChangeManager(){
-        // Tham chiếu đến tài liệu trong Firestore
-        FirebaseFirestore db = FirebaseFirestore.getInstance();
-        DocumentReference docRef = db.collection("chatRooms").document(chatRoomId);
+// Tham chiếu đến Realtime Database để lấy thông tin từ chatRooms
+        FirebaseDatabase database = FirebaseDatabase.getInstance();
+        DatabaseReference chatRoomRef = database.getReference("chatRooms").child(chatRoomId);
 
-        // Lấy dữ liệu từ tài liệu
-        docRef.get().addOnSuccessListener(documentSnapshot -> {
-            if (documentSnapshot.exists()) {
-                // Lấy danh sách participants
-                List<String> participants = (List<String>) documentSnapshot.get("participants");
+// Lấy dữ liệu từ chatRoom
+        chatRoomRef.addListenerForSingleValueEvent(new ValueEventListener() {
+            @Override
+            public void onDataChange(DataSnapshot dataSnapshot) {
+                if (dataSnapshot.exists()) {
+                    // Lấy danh sách participants
+                    List<String> participants = (List<String>) dataSnapshot.child("participants").getValue();
 
-                if (participants != null) {
-                    participants.remove(currentUserId);
-                    db.collection("users")
-                            .whereIn(FieldPath.documentId(), participants)  // Lọc chỉ lấy những người là thành viên
-                            .get()
-                            .addOnCompleteListener(userTask -> {
-                                if (userTask.isSuccessful() && userTask.getResult() != null) {
-                                    List<User> users = new ArrayList<>();
-                                    for (QueryDocumentSnapshot queryDocumentSnapshot : userTask.getResult()) {
-                                        User user = queryDocumentSnapshot.toObject(User.class);
-                                        user.setUserId(queryDocumentSnapshot.getId());
-                                        users.add(user);
+                    if (participants != null && participants.size() > 1) {  // Kiểm tra có ít nhất 2 người tham gia (bỏ qua currentUserId)
+                        participants.remove(currentUserId);
+
+                        // Tham chiếu đến Firestore để lấy thông tin người dùng
+                        FirebaseFirestore db = FirebaseFirestore.getInstance();
+                        db.collection("users")
+                                .whereIn(FieldPath.documentId(), participants)  // Lọc chỉ lấy những người là thành viên
+                                .get()
+                                .addOnCompleteListener(userTask -> {
+                                    if (userTask.isSuccessful() && userTask.getResult() != null) {
+                                        List<User> users = new ArrayList<>();
+                                        for (QueryDocumentSnapshot queryDocumentSnapshot : userTask.getResult()) {
+                                            User user = queryDocumentSnapshot.toObject(User.class);
+                                            user.setUserId(queryDocumentSnapshot.getId());
+                                            users.add(user);
+                                        }
+
+                                        // Hiển thị danh sách
+                                        if (!users.isEmpty()) {
+                                            // Hiển thị AlertDialog khi cần
+                                            showUserDialog(users);
+                                        }
                                     }
-
-                                    // Hiển thị danh sách
-                                    if (!users.isEmpty()) {
-                                        // Hiển thị AlertDialog khi cần
-                                        showUserDialog(users);
-                                    }
-                                }
-                            });
+                                })
+                                .addOnFailureListener(e -> {
+                                    Log.e("Firestore", "Lỗi lấy dữ liệu người dùng", e);
+                                });
+                    } else {
+                        Toast.makeText(Chats.this, "Không có người tham gia", Toast.LENGTH_SHORT).show();
+                    }
+                } else {
+                    Log.d("RealtimeDatabase", "Không có dữ liệu tồn tại");
                 }
-            } else {
-                Log.d("Firestore", "Không có dữ liệu tồn tại ");
             }
-        }).addOnFailureListener(e -> {
-            Log.e("Firestore", "Lỗi lấy dữ liệu", e);
+
+            @Override
+            public void onCancelled(DatabaseError databaseError) {
+                Log.e("RealtimeDatabase", "Lỗi lấy dữ liệu chatRoom", databaseError.toException());
+            }
         });
+
 
     }
     private void showUserDialog(List<User> userList) {

@@ -24,7 +24,6 @@
         android:minHeight="?attr/actionBarSize"
         android:theme="?attr/actionBarTheme"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.0"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
 
@@ -46,21 +45,20 @@
         android:id="@+id/groupname"
         android:layout_width="233dp"
         android:layout_height="47dp"
-        android:layout_marginStart="24dp"
-        android:layout_marginTop="28dp"
-        android:layout_marginEnd="101dp"
+        android:layout_marginStart="28dp"
+        android:layout_marginTop="48dp"
         android:background="@drawable/border"
         android:ems="10"
         android:hint="Tên nhóm"
         android:inputType="text"
         android:paddingLeft="10dp"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.716"
+        app:layout_constraintEnd_toStartOf="@+id/btncreate"
+        app:layout_constraintHorizontal_bias="0.533"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/materialToolbar4" />
+        app:layout_constraintTop_toBottomOf="@+id/tennhom" />
 
     <TextView
-        android:id="@+id/textView3"
+        android:id="@+id/tennhom"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginEnd="176dp"
@@ -74,52 +72,52 @@
 
     <ImageButton
         android:id="@+id/btncreate"
-        android:layout_width="78dp"
-        android:layout_height="73dp"
-        android:layout_marginTop="16dp"
+        android:layout_width="84dp"
+        android:layout_height="64dp"
+        android:layout_marginEnd="36dp"
         android:backgroundTint="#00FFFFFF"
         android:scaleType="fitCenter"
         android:tint="#FFFFFF"
+        app:layout_constraintBottom_toBottomOf="@+id/groupname"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.0"
-        app:layout_constraintStart_toEndOf="@+id/groupname"
-        app:layout_constraintTop_toBottomOf="@+id/materialToolbar4"
+        app:layout_constraintTop_toTopOf="@+id/groupname"
+        app:layout_constraintVertical_bias="0.0"
         app:srcCompat="@drawable/create" />
 
     <com.google.android.material.appbar.MaterialToolbar
         android:id="@+id/materialToolbar7"
-        android:layout_width="374dp"
-        android:layout_height="566dp"
-        android:layout_marginTop="8dp"
-        android:layout_marginBottom="76dp"
+        android:layout_width="412dp"
+        android:layout_height="663dp"
+        android:layout_marginBottom="16dp"
         android:background="@drawable/border"
         android:minHeight="?attr/actionBarSize"
         android:theme="?attr/actionBarTheme"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.486"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/groupname"
-        app:layout_constraintVertical_bias="0.531" />
+        app:layout_constraintHorizontal_bias="0.0"
+        app:layout_constraintStart_toStartOf="parent" />
 
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/all_fr"
-        android:layout_width="370dp"
-        android:layout_height="566dp"
+        android:layout_width="410dp"
+        android:layout_height="684dp"
         app:layout_constraintBottom_toBottomOf="@+id/materialToolbar7"
         app:layout_constraintEnd_toEndOf="@+id/materialToolbar7"
-        app:layout_constraintHorizontal_bias="0.533"
+        app:layout_constraintHorizontal_bias="1.0"
         app:layout_constraintStart_toStartOf="@+id/materialToolbar7"
         app:layout_constraintTop_toTopOf="@+id/materialToolbar7"
         app:layout_constraintVertical_bias="0.0" />
 
     <TextView
-        android:id="@+id/textView4"
+        android:id="@+id/groupname"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
+        android:layout_marginStart="44dp"
+        android:layout_marginTop="80dp"
         android:text="Nhập tên nhóm"
         app:layout_constraintBottom_toTopOf="@+id/groupname"
-        app:layout_constraintStart_toStartOf="@+id/groupname" />
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
 
     <!-- ProgressBar -->
 

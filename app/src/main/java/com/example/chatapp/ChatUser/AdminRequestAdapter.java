@@ -61,19 +61,42 @@ public class AdminRequestAdapter extends RecyclerView.Adapter<AdminRequestAdapte
     @Override
     public void onBindViewHolder(@NonNull AdminRequestViewHolder holder, int position) {
         AdminRequest adminRequest = adminRequestList.get(position);
-        holder.textName.setText(adminRequest.getName() + "(Manager)");
-        holder.textNameChange.setText(adminRequest.getNameChange()+ "(Changed)");
-        holder.textGroup.setText(adminRequest.getGroupName());
+
+        // Kiểm tra nếu các trường không null
+        String userName = adminRequest.getName();
+        String changeUserName = adminRequest.getNameChange();
+        String groupName = adminRequest.getGroupName();
+
+        // Cập nhật thông tin UI
+        if (userName != null) {
+            holder.textName.setText(userName + "(Manager)");
+        } else {
+            holder.textName.setText("(Manager)"); // Nếu không có tên, hiển thị "(Manager)"
+        }
+
+        if (changeUserName != null) {
+            holder.textNameChange.setText(changeUserName + "(Changed)");
+        } else {
+            holder.textNameChange.setText("(Changed)"); // Nếu không có tên, hiển thị "(Changed)"
+        }
+
+        if (groupName != null) {
+            holder.textGroup.setText(groupName);
+        } else {
+            holder.textGroup.setText("No Group"); // Nếu không có nhóm, hiển thị "No Group"
+        }
+
         // Tải ảnh từ Firestore và hiển thị
         setImage(holder.imageProfile, adminRequest.getUserId(), holder.itemView.getContext());
 
-
+        // Khi nhấn nút đồng ý
         holder.btnAgree.setOnClickListener(view -> {
             adminListener.onBtnAgree(adminRequest);
             holder.btnAgree.setVisibility(View.GONE);
             holder.btnReject.setVisibility(View.GONE);
-
         });
+
+        // Khi nhấn nút từ chối
         holder.btnReject.setOnClickListener(view -> {
             adminListener.onBtnRemove(adminRequest);
             holder.btnAgree.setVisibility(View.GONE);

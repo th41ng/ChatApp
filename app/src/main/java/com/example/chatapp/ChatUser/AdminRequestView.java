@@ -17,6 +17,8 @@ import com.example.chatapp.R;
 import com.google.android.gms.tasks.Task;
 import com.google.android.gms.tasks.TaskCompletionSource;
 import com.google.android.gms.tasks.Tasks;
+import com.google.firebase.database.DatabaseReference;
+import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.firestore.DocumentReference;
 import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FieldPath;
@@ -169,52 +171,53 @@ public class AdminRequestView extends AppCompatActivity implements AdminListener
 
     @Override
     public void onBtnAgree(models.AdminRequest adminRequest) {
-        FirebaseFirestore db = FirebaseFirestore.getInstance();
-
-        // Bước 1: Cập nhật managerId trong collection "chatrooms"
-        DocumentReference chatRoomRef = db.collection("chatRooms").document(adminRequest.getGroupName());
-        chatRoomRef.update("managerId", adminRequest.getUserChangeId())
+        FirebaseDatabase database = FirebaseDatabase.getInstance();
+        DatabaseReference chatRoomRef = database.getReference("chatRooms").child(adminRequest.getGroupName());
+        // Step 1: Update chatRoomOwner in Realtime Database
+        chatRoomRef.child("chatRoomOwner").setValue(adminRequest.getUserChangeId())
                 .addOnSuccessListener(aVoid -> {
-                    Log.d("Firestore", "Manager ID được cập nhật thành công");
+                    Log.d("RealtimeDB", "Chat room owner updated successfully");
 
-                    // Bước 2: Xóa trường changeId trong tài liệu chatrooms
-                    chatRoomRef.update("changeId", FieldValue.delete())
+                    // Step 2: Remove the changeId field in Firestore
+                    FirebaseFirestore db = FirebaseFirestore.getInstance();
+                    db.collection("chatRooms").document(adminRequest.getGroupName())
+                            .update("changeId", null)
                             .addOnSuccessListener(aVoid1 -> {
-                                Log.d("Firestore", "Field changeId đã được xóa");
+                                Log.d("Firestore1", "Field changeId removed");
 
-                                // Bước 3: Xóa tài liệu yêu cầu từ "managerChangeRequests"
-                                // Truy vấn để tìm tài liệu có chatRoomId khớp
+                                // Step 3: Delete the request from Firestore's managerChangeRequests
                                 db.collection("managerChangeRequests")
                                         .whereEqualTo("chatRoomId", adminRequest.getGroupName())
                                         .get()
                                         .addOnSuccessListener(queryDocumentSnapshots -> {
                                             if (!queryDocumentSnapshots.isEmpty()) {
                                                 for (QueryDocumentSnapshot document : queryDocumentSnapshots) {
-                                                    // Xóa tài liệu khớp
                                                     db.collection("managerChangeRequests").document(document.getId())
                                                             .delete()
-                                                            .addOnSuccessListener(e -> {
+                                                            .addOnSuccessListener(aVoid2 -> {
                                                                 Toast.makeText(getApplicationContext(), "Yêu cầu đã được xóa", Toast.LENGTH_SHORT).show();
-                                                                Log.d("Firestore", "Yêu cầu đã bị xóa");
+                                                                Log.d("Firestore1", "Request deleted");
                                                             })
                                                             .addOnFailureListener(e -> {
                                                                 Toast.makeText(getApplicationContext(), "Lỗi khi xóa yêu cầu", Toast.LENGTH_SHORT).show();
-                                                                Log.e("Firestore", "Lỗi khi xóa yêu cầu", e);
+                                                                Log.e("Firestore1", "Error deleting request", e);
                                                             });
                                                 }
-                                            } else {
-                                                Toast.makeText(getApplicationContext(), "Không tìm thấy yêu cầu nào khớp", Toast.LENGTH_SHORT).show();
                                             }
                                         })
                                         .addOnFailureListener(e -> {
                                             Toast.makeText(getApplicationContext(), "Lỗi khi truy vấn yêu cầu", Toast.LENGTH_SHORT).show();
-                                            Log.e("Firestore", "Lỗi khi truy vấn yêu cầu", e);
+                                            Log.e("Firestore1", "Error querying requests", e);
                                         });
                             })
                             .addOnFailureListener(e -> {
-                                Toast.makeText(getApplicationContext(), "Lỗi khi cập nhật managerId", Toast.LENGTH_SHORT).show();
-                                Log.e("Firestore", "Lỗi khi cập nhật managerId", e);
+                                Toast.makeText(getApplicationContext(), "Lỗi khi cập nhật chatRoomOwner", Toast.LENGTH_SHORT).show();
+                                Log.e("Firestore1", "Error updating chatRoomOwner", e);
                             });
+                })
+                .addOnFailureListener(e -> {
+                    Toast.makeText(getApplicationContext(), "Lỗi khi cập nhật chatRoomOwner", Toast.LENGTH_SHORT).show();
+                    Log.e("RealtimeDB", "Error updating chatRoomOwner", e);
                 });
     }
 
