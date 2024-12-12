@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android">
+    <item android:title="Bạn bè"
+        android:icon="@drawable/baseline_person_24"
+        android:id="@+id/menu_friends"/>
+    <item android:title="Lời mời kết bạn"
+        android:icon="@drawable/add_friend"
+        android:id="@+id/menu_add_friend"/>
+</menu>

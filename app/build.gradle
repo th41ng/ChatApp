@@ -1,0 +1,73 @@
+plugins {
+    id 'com.android.application'
+    id  'com.google.gms.google-services'
+}
+
+android {
+    namespace 'com.example.chatapp'
+    compileSdk 34
+
+    defaultConfig {
+        applicationId "com.example.chatapp"
+        minSdk 24
+        targetSdk 34
+        versionCode 1
+        versionName "1.0"
+
+        testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
+    }
+
+    buildTypes {
+        release {
+            minifyEnabled false
+            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
+        }
+    }
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_1_8
+        targetCompatibility JavaVersion.VERSION_1_8
+    }
+}
+
+dependencies {
+    //Cấu hình cho cloud firestore (dùng để lưu trữ dữ liệu người dùng)
+    implementation 'com.google.firebase:firebase-firestore:25.1.1'
+    //Cấu hình cho realtime database để nhắn tin
+    implementation 'com.google.firebase:firebase-database:21.0.0'
+    implementation 'com.google.android.material:material:1.9.0'
+    implementation 'androidx.recyclerview:recyclerview:1.2.1'
+    // Glide library
+    implementation 'com.github.bumptech.glide:glide:4.15.1'
+    implementation libs.firebase.inappmessaging
+    annotationProcessor 'com.github.bumptech.glide:compiler:4.15.1'
+
+    implementation 'com.makeramen:roundedimageview:2.3.0'
+    implementation 'androidx.preference:preference:1.2.0'
+    implementation 'com.google.firebase:firebase-messaging:23.1.0'
+    implementation 'androidx.recyclerview:recyclerview:1.2.1'
+
+    //Đảm bảo bạn đã có các thư viện sau cho ActivityResultLauncher và các component UI cơ bản
+    implementation 'androidx.appcompat:appcompat:1.6.1'
+    implementation 'androidx.activity:activity:1.8.0'
+    implementation 'androidx.activity:activity-ktx:1.8.0'
+
+    //
+    // All:
+    implementation 'com.cloudinary:cloudinary-android:3.0.2'
+// Download + Preprocess:
+    implementation 'com.cloudinary:cloudinary-android-download:3.0.2'
+    implementation 'com.cloudinary:cloudinary-android-preprocess:3.0.2'
+
+    //Cấu hình mặc định
+    implementation libs.appcompat
+    implementation libs.material
+    implementation libs.activity
+    implementation libs.constraintlayout
+    implementation libs.firebase.firestore
+    implementation libs.firebase.database
+    implementation libs.firebase.auth
+    implementation libs.recyclerview
+    testImplementation libs.junit
+    androidTestImplementation libs.ext.junit
+    androidTestImplementation libs.espresso.core
+}
