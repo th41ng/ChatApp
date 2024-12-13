@@ -168,6 +168,7 @@ public class RegisterActivity extends AppCompatActivity {
         user.put("name", name);
         user.put("email", email);
         user.put("phone", phone);
+        user.put("disabled", false);
 
         // Thêm dữ liệu người dùng vào Firestore
         db.collection("users").document(userId).set(user)

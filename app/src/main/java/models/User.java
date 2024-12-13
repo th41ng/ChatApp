@@ -7,6 +7,7 @@ public class User implements Serializable {
     private String name;
     private String image;
     private String email;
+    private Boolean disabled;
 
     public User(String participantId, String participantName) {
         this.userId = participantId;
@@ -74,4 +75,6 @@ public class User implements Serializable {
         this.token = token;
     }
 
+    public Boolean getDisabled() {return disabled;}
+    public void setDisabled(Boolean disabled) {this.disabled = disabled;}
 }

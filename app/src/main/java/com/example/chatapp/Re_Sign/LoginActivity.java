@@ -130,7 +130,7 @@ public class LoginActivity extends AppCompatActivity {
             @Override
             public void onComplete(@NonNull Task<AuthResult> task) {
                 if (task.isSuccessful()) {
-                    Toast.makeText(getApplicationContext(), "Đăng nhập thành công", Toast.LENGTH_SHORT).show();
+
 
                     // Lấy FirebaseUser hiện tại
                     FirebaseUser user = mAuth.getCurrentUser();
@@ -172,6 +172,7 @@ public class LoginActivity extends AppCompatActivity {
                                                                             String name = userSnapshot.getString("name");
                                                                             String phone = userSnapshot.getString("phone");
                                                                             String image = userSnapshot.getString("image");
+                                                                            Toast.makeText(getApplicationContext(), "Đăng nhập thành công", Toast.LENGTH_SHORT).show();
 
                                                                             Intent intent = new Intent(LoginActivity.this, ChatUserMain.class);
                                                                             intent.putExtra("userId", userId);

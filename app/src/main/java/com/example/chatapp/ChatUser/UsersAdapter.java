@@ -57,6 +57,13 @@ public class UsersAdapter extends RecyclerView.Adapter<UsersAdapter.UserViewHold
         setImage(holder.imageProfile, user.getUserId(), holder.itemView.getContext());
 
         holder.itemView.setOnClickListener(v -> userListener.onUserClicked(user));
+        // Thiết lập trạng thái của item (mờ và vô hiệu hóa sự kiện click nếu bị vô hiệu hóa)
+        if (Boolean.TRUE.equals(user.getDisabled())) {
+            // Thay đổi giao diện để chỉ rõ tài khoản bị vô hiệu hóa
+            holder.itemView.setAlpha(0.5f); // Làm mờ
+        } else {
+            holder.itemView.setAlpha(1.0f); // Hiển thị bình thường
+        }
     }
     private void setImage(ImageView imageView, String userId, Context context) {
         FirebaseFirestore db = FirebaseFirestore.getInstance();

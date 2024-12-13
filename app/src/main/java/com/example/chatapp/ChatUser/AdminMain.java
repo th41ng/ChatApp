@@ -130,15 +130,10 @@ public class AdminMain extends AppCompatActivity implements UserListener{
                         int totalUsers = 0; // Biến này dùng để tính tổng số người dùng hợp lệ
 
                         for (QueryDocumentSnapshot queryDocumentSnapshot : task.getResult()) {
-                            Boolean disabled = queryDocumentSnapshot.getBoolean("disabled");
-
-                            // Chỉ lấy người dùng không bị vô hiệu hóa
-                            if (Boolean.FALSE.equals(disabled)) {
-                                User user = queryDocumentSnapshot.toObject(User.class);
-                                user.setUserId(queryDocumentSnapshot.getId());
-                                users.add(user);
-                                totalUsers++; // Tăng số lượng người dùng hợp lệ
-                            }
+                            User user = queryDocumentSnapshot.toObject(User.class);
+                            user.setUserId(queryDocumentSnapshot.getId());
+                            users.add(user); // 🟥 Thay đổi: thêm tất cả người dùng vào danh sách
+                            totalUsers++;
                         }
 
                         // Cập nhật giao diện người dùng
@@ -194,7 +189,7 @@ public class AdminMain extends AppCompatActivity implements UserListener{
     @Override
     public void onUserClicked(User user) {
         // Tạo một danh sách các lựa chọn
-        String[] options = {"Vô hiệu hóa tài khoản","Thay đổi thông tin tài khoản","Xem thông tin chi tiết", "Hủy"};
+        String[] options = {"Vô hiệu hóa tài khoản","Hủy vô hiệu hóa tài khoản","Thay đổi thông tin tài khoản","Xem thông tin chi tiết", "Hủy"};
 
         // Hiển thị AlertDialog
         new AlertDialog.Builder(this)
@@ -202,27 +197,23 @@ public class AdminMain extends AppCompatActivity implements UserListener{
                 .setItems(options, (dialog, which) -> {
                     switch (which) {
                         case 0: // Vô hiệu hóa tài khoản
-                            new AlertDialog.Builder(this)
-                                    .setTitle("Xác nhận vô hiệu hóa")
-                                    .setMessage("Bạn có chắc muốn vô hiệu hóa tài khoản của " + user.getName() + " không?")
-                                    .setPositiveButton("Vô hiệu hóa", (dialogInterface, i) -> {
-                                        FirebaseFirestore database = FirebaseFirestore.getInstance();
-                                        DocumentReference userRef = database.collection("users").document(user.getUserId());
-
-                                        // Cập nhật trạng thái "disabled" của tài khoản
-                                        userRef.update("disabled", true)
-                                                .addOnSuccessListener(unused -> {
-                                                    Toast.makeText(AdminMain.this, "Tài khoản đã bị vô hiệu hóa", Toast.LENGTH_SHORT).show();
-                                                    getAllUsers(); // Làm mới danh sách người dùng
-                                                })
-                                                .addOnFailureListener(e -> {
-                                                    Toast.makeText(AdminMain.this, "Lỗi khi vô hiệu hóa tài khoản: " + e.getMessage(), Toast.LENGTH_SHORT).show();
-                                                });
-                                    })
-                                    .setNegativeButton("Hủy", (dialogInterface, i) -> dialogInterface.dismiss())
-                                    .show();
+                            if (Boolean.FALSE.equals(user.getDisabled())) {
+                                // Nếu tài khoản chưa bị vô hiệu hóa, vô hiệu hóa tài khoản
+                                disableUser(user);
+                            } else {
+                                Toast.makeText(this, "Tài khoản đã bị vô hiệu hóa trước đó", Toast.LENGTH_SHORT).show();
+                            }
                             break;
-                        case 1://Thay đổi thông tin tài khoản
+                        case 1: // Hủy vô hiệu hóa tài khoản
+                            if (Boolean.TRUE.equals(user.getDisabled())) {
+                                // Nếu tài khoản đang bị vô hiệu hóa, kích hoạt lại
+                                activateUser(user);
+                            } else {
+                                Toast.makeText(this, "Tài khoản chưa bị vô hiệu hóa", Toast.LENGTH_SHORT).show();
+                            }
+                            break;
+
+                        case 2://Thay đổi thông tin tài khoản
                             Intent intent=new Intent(getApplicationContext(), ChangeProfile.class);
                             intent.putExtra("name", user.getName());
                             intent.putExtra("image", user.getImage());
@@ -231,7 +222,7 @@ public class AdminMain extends AppCompatActivity implements UserListener{
                             intent.putExtra("userId",user.getUserId());
                             startActivity(intent);
                             break;
-                        case 2: // Xem thông tin chi tiết
+                        case 3: // Xem thông tin chi tiết
                             Intent intent3=new Intent(getApplicationContext(), UserInfor.class);
                             intent3.putExtra("name", user.getName());
                             intent3.putExtra("image", user.getImage());
@@ -240,7 +231,7 @@ public class AdminMain extends AppCompatActivity implements UserListener{
                             intent3.putExtra("userId",user.getUserId());
                             startActivity(intent3);
                             break;
-                        case 3: // Hủy
+                        case 4: // Hủy
                             dialog.dismiss();
                             break;
                     }
@@ -253,6 +244,35 @@ public class AdminMain extends AppCompatActivity implements UserListener{
         Intent intent = new Intent(getApplicationContext(), LoginActivity.class);
         startActivity(intent);
         finish();
+    }
+
+    private void disableUser(User user) {
+        FirebaseFirestore database = FirebaseFirestore.getInstance();
+        DocumentReference userRef = database.collection("users").document(user.getUserId());
+
+        // Vô hiệu hóa tài khoản
+        userRef.update("disabled", true)
+                .addOnSuccessListener(unused -> {
+                    Toast.makeText(AdminMain.this, "Tài khoản đã bị vô hiệu hóa", Toast.LENGTH_SHORT).show();
+                    getAllUsers(); // Làm mới danh sách người dùng
+                })
+                .addOnFailureListener(e -> {
+                    Toast.makeText(AdminMain.this, "Lỗi khi vô hiệu hóa tài khoản: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+                });
+    }
+    private void activateUser(User user) {
+        FirebaseFirestore database = FirebaseFirestore.getInstance();
+        DocumentReference userRef = database.collection("users").document(user.getUserId());
+
+        // Kích hoạt lại tài khoản
+        userRef.update("disabled", false)
+                .addOnSuccessListener(unused -> {
+                    Toast.makeText(AdminMain.this, "Tài khoản đã được kích hoạt lại", Toast.LENGTH_SHORT).show();
+                    getAllUsers(); // Làm mới danh sách người dùng
+                })
+                .addOnFailureListener(e -> {
+                    Toast.makeText(AdminMain.this, "Lỗi khi kích hoạt lại tài khoản: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+                });
     }
     @Override
     public void onBtnAddFriend(User user) {
