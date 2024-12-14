@@ -39,8 +39,6 @@ public class UserActivity extends AppCompatActivity implements UserListener{
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.friend_activity_user);
-        FirebaseUser currentUser= FirebaseAuth.getInstance().getCurrentUser();
-        String currentUserID=currentUser.getUid();
 
         textErrorMessage = findViewById(R.id.textErrorMessage);
         progressBar = findViewById(R.id.progressBar);
@@ -53,9 +51,19 @@ public class UserActivity extends AppCompatActivity implements UserListener{
         btnfindfriend = findViewById(R.id.btnfindfriend);
         btnhome= findViewById(R.id.btnhome);
 
+        String currentUserID = getIntent().getStringExtra("userId");
+        String userName = getIntent().getStringExtra("name");
+        String phone = getIntent().getStringExtra("phone");
+        String encodedImage=getIntent().getStringExtra("image");
+        String email = getIntent().getStringExtra("email");
+
         btnfriend.setOnClickListener(v -> {
             Intent intent = new Intent(getApplicationContext(), UserActivity.class);
             intent.putExtra("userId",currentUserID);
+            intent.putExtra("name", userName);
+            intent.putExtra("image", encodedImage);
+            intent.putExtra("phone", phone);
+            intent.putExtra("email", email);
             startActivity(intent);
         });
 
@@ -63,6 +71,10 @@ public class UserActivity extends AppCompatActivity implements UserListener{
         btnfindfriend.setOnClickListener(v -> {
             Intent intent = new Intent(getApplicationContext(), SearchUser.class);
             intent.putExtra("userId",currentUserID);
+            intent.putExtra("name", userName);
+            intent.putExtra("image", encodedImage);
+            intent.putExtra("phone", phone);
+            intent.putExtra("email", email);
             startActivity(intent);
         });
 
@@ -70,6 +82,10 @@ public class UserActivity extends AppCompatActivity implements UserListener{
         btnhome.setOnClickListener(v -> {
             Intent intent = new Intent(getApplicationContext(), ChatUserMain.class);
             intent.putExtra("userId",currentUserID);
+            intent.putExtra("name", userName);
+            intent.putExtra("image", encodedImage);
+            intent.putExtra("phone", phone);
+            intent.putExtra("email", email);
             startActivity(intent);
         });
         btncreategr.setOnClickListener(v -> {

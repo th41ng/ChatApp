@@ -29,6 +29,7 @@ import models.User;
 
 public class groupChat extends AppCompatActivity {
     private ImageButton btnCreate;
+    private ImageButton btnBack;
     private RecyclerView allFrRecyclerView;
     private Set<String> selectedUserIds = new HashSet<>(); // Lưu các ID đã chọn
     EditText groupname;
@@ -40,6 +41,8 @@ public class groupChat extends AppCompatActivity {
         setContentView(R.layout.activity_group_chat);
         groupname=findViewById(R.id.groupname);
 
+        btnBack = findViewById(R.id.btnBack);
+        btnBack.setOnClickListener(view -> getOnBackPressedDispatcher().onBackPressed());
 
         allFrRecyclerView = findViewById(R.id.all_fr);
         btnCreate = findViewById(R.id.btncreate);

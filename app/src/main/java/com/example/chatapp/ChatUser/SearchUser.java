@@ -63,11 +63,19 @@ public class SearchUser extends AppCompatActivity implements UserListener {
         ImageButton btnhome = findViewById(R.id.btnhome);
 
         String userId = getIntent().getStringExtra("userId");
+        String userName = getIntent().getStringExtra("name");
+        String phone = getIntent().getStringExtra("phone");
+        String encodedImage=getIntent().getStringExtra("image");
+        String email = getIntent().getStringExtra("email");
 
         // Gán sự kiện click cho btnfriend
         btnfriend.setOnClickListener(v -> {
             Intent intent = new Intent(getApplicationContext(), UserActivity.class);
             intent.putExtra("userId",userId);
+            intent.putExtra("name",userName);
+            intent.putExtra("image", encodedImage);
+            intent.putExtra("phone", phone);
+            intent.putExtra("email", email);
             startActivity(intent);
         });
 
@@ -75,6 +83,10 @@ public class SearchUser extends AppCompatActivity implements UserListener {
         btnfindfriend.setOnClickListener(v -> {
             Intent intent = new Intent(getApplicationContext(), SearchUser.class);
             intent.putExtra("userId",userId);
+            intent.putExtra("name",userName);
+            intent.putExtra("image", encodedImage);
+            intent.putExtra("phone", phone);
+            intent.putExtra("email", email);
             startActivity(intent);
         });
 
@@ -82,6 +94,10 @@ public class SearchUser extends AppCompatActivity implements UserListener {
         btnhome.setOnClickListener(v -> {
             Intent intent = new Intent(getApplicationContext(), ChatUserMain.class);
             intent.putExtra("userId",userId);
+            intent.putExtra("name",userName);
+            intent.putExtra("image", encodedImage);
+            intent.putExtra("phone", phone);
+            intent.putExtra("email", email);
             startActivity(intent);
         });
 

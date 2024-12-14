@@ -61,10 +61,10 @@ public class ChatUserMain extends AppCompatActivity  {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.friend_activity_chat_user_main);
 
-        currentUserID = getIntent().getStringExtra("userId"); // Khởi tạo trong onCreate
+        currentUserID = getIntent().getStringExtra("userId");
         userName = getIntent().getStringExtra("name");
-        encodedImage = getIntent().getStringExtra("image");
         phone = getIntent().getStringExtra("phone");
+        encodedImage=getIntent().getStringExtra("image");
         email = getIntent().getStringExtra("email");
 
         if (currentUserID == null || currentUserID.isEmpty()) {
@@ -102,7 +102,6 @@ public class ChatUserMain extends AppCompatActivity  {
     }
 
     private void loadUserDetails() {
-
 
         name.setText(userName != null ? userName : "User");
         if (encodedImage != null && !encodedImage.isEmpty()) {
@@ -266,23 +265,40 @@ public class ChatUserMain extends AppCompatActivity  {
         btnfriend.setOnClickListener(view->{
             Intent intent=new Intent(getApplicationContext(), UserActivity.class);
             intent.putExtra("userId",currentUserID);
+            intent.putExtra("name", userName);
+            intent.putExtra("image", encodedImage);
+            intent.putExtra("phone", phone);
+            intent.putExtra("email", email);
             startActivity(intent);
         });
         btnhome=findViewById(R.id.btnhome);
         btnhome.setOnClickListener(view->{
             Intent intent=new Intent(getApplicationContext(), ChatUserMain.class);
+            intent.putExtra("userId",currentUserID);
+            intent.putExtra("name", userName);
+            intent.putExtra("image", encodedImage);
+            intent.putExtra("phone", phone);
+            intent.putExtra("email", email);
             startActivity(intent);
         });
         btnfindfriend=findViewById(R.id.btnfindfriend);
         btnfindfriend.setOnClickListener(view->{
             Intent intent=new Intent(getApplicationContext(), SearchUser.class);
             intent.putExtra("userId",currentUserID);
+            intent.putExtra("name", userName);
+            intent.putExtra("image", encodedImage);
+            intent.putExtra("phone", phone);
+            intent.putExtra("email", email);
             startActivity(intent);
         });
         friendrequest=findViewById(R.id.friendrequest);
         friendrequest.setOnClickListener(view->{
             Intent intent=new Intent(getApplicationContext(), FriendRequest.class);
             intent.putExtra("userId",currentUserID);
+            intent.putExtra("name", userName);
+            intent.putExtra("image", encodedImage);
+            intent.putExtra("phone", phone);
+            intent.putExtra("email", email);
             startActivity(intent);
         });
         image.setOnClickListener(view->{

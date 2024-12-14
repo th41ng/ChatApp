@@ -15,6 +15,11 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import com.bumptech.glide.Glide;
 import com.example.chatapp.R;
+import com.google.firebase.database.DataSnapshot;
+import com.google.firebase.database.DatabaseError;
+import com.google.firebase.database.DatabaseReference;
+import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.database.ValueEventListener;
 import com.google.firebase.firestore.DocumentReference;
 import com.google.firebase.firestore.FirebaseFirestore;
 
@@ -79,6 +84,26 @@ public class LastMessageAdapter extends RecyclerView.Adapter<LastMessageAdapter.
             Log.d("friend","friendName:"+message.getFriendName());
             context.startActivity(intent);
         });
+
+        //Thể hiện trạng thái của user
+        DatabaseReference usersRef = FirebaseDatabase.getInstance().getReference("users").child(message.getFriendId()).child("status");
+        usersRef.addValueEventListener(new ValueEventListener() {
+            @Override
+            public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
+                String status = dataSnapshot.getValue(String.class);
+                // Xử lý trạng thái người dùng
+                if (status!=null && status.equals("online")) {
+                    holder.viewStatus.setBackgroundResource(R.drawable.status_online_circle);// Hình tròn xanh
+                } else {
+                    holder.viewStatus.setBackgroundResource(R.drawable.status_offline_circle); // Hình tròn xám
+                }
+            }
+
+            @Override
+            public void onCancelled(@NonNull DatabaseError databaseError) {
+                Log.e("FirebaseError", "Error: " + databaseError.getMessage());
+            }
+        });
     }
     private void setImage(ImageView imageView, String userId, Context context) {
         FirebaseFirestore db = FirebaseFirestore.getInstance();
@@ -126,6 +151,7 @@ public class LastMessageAdapter extends RecyclerView.Adapter<LastMessageAdapter.
         TextView userNameTextView;
         TextView lastMessageTextView;
         TextView lastMessageTimeTextView;
+        View viewStatus;
 
         public ViewHolder(@NonNull View itemView) {
             super(itemView);
@@ -133,6 +159,7 @@ public class LastMessageAdapter extends RecyclerView.Adapter<LastMessageAdapter.
             userNameTextView = itemView.findViewById(R.id.userNameTextView);
             lastMessageTextView = itemView.findViewById(R.id.lastMessageTextView);
             lastMessageTimeTextView = itemView.findViewById(R.id.lastMessageTimeTextView);
+            viewStatus=itemView.findViewById(R.id.status);
         }
     }
 }

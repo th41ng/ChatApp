@@ -73,7 +73,7 @@ public class ChangeProfile extends AppCompatActivity {
         confirmNewPass = findViewById(R.id.confirmNewPass); // Mật khẩu mới
         confirmpass = findViewById(R.id.confirmpass);
         btnSave=findViewById(R.id.btnSave);
-        ImageView imageBack = findViewById(R.id.btnBack);
+        imageBack = findViewById(R.id.btnBack);
 
         // Lấy thông tin từ Intent
         String name = getIntent().getStringExtra("name");

@@ -42,25 +42,17 @@
 
     <ImageButton
         android:id="@+id/imageButton"
-        android:layout_width="106dp"
-        android:layout_height="94dp"
+        android:layout_width="100dp"
+        android:layout_height="100dp"
         android:layout_marginStart="52dp"
-        android:layout_marginTop="32dp"
+        android:layout_marginTop="40dp"
+        android:background="@drawable/rounded_background"
         android:backgroundTint="#00FFFFFF"
-        android:scaleType="fitCenter"
+        android:clipToOutline="true"
+        android:scaleType="centerCrop"
         app:layout_constraintStart_toEndOf="@id/textViewTen"
         app:layout_constraintTop_toTopOf="@id/textViewTitle"
         app:srcCompat="@drawable/default_avatar" />
-
-    <TextView
-        android:id="@+id/textViewTen"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="TÊN"
-        android:textColor="#FFFFFF"
-        android:textSize="24sp"
-        app:layout_constraintBottom_toTopOf="@+id/fullname"
-        app:layout_constraintStart_toStartOf="@+id/fullname" />
 
     <EditText
         android:id="@+id/fullname"
@@ -219,12 +211,22 @@
         android:id="@+id/btnSave"
         android:layout_width="146dp"
         android:layout_height="53dp"
-        android:layout_marginBottom="30dp"
+        android:layout_marginBottom="16dp"
         android:text="Lưu"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintHorizontal_bias="0.498"
         app:layout_constraintStart_toStartOf="parent" />
+
+    <TextView
+        android:id="@+id/textViewTen"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="TÊN"
+        android:textColor="#FFFFFF"
+        android:textSize="24sp"
+        app:layout_constraintBottom_toTopOf="@+id/fullname"
+        app:layout_constraintStart_toStartOf="@+id/fullname" />
 
 
 </androidx.constraintlayout.widget.ConstraintLayout>

@@ -16,12 +16,21 @@
         android:layout_height="50dp"
         android:layout_marginStart="16dp"
         android:layout_marginTop="4dp"
+        android:background="@drawable/rounded_background"
+        android:clipToOutline="true"
         android:scaleType="centerCrop"
         android:src="@drawable/default_avatar"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
         app:layout_constraintVertical_bias="0.0" />
+    <View
+        android:id="@+id/status"
+        android:layout_width="15dp"
+        android:layout_height="15dp"
+        android:background="@drawable/status_online_circle"
+        app:layout_constraintBottom_toBottomOf="@id/avatarImageView"
+        app:layout_constraintEnd_toEndOf="@id/avatarImageView" />
 
     <TextView
         android:id="@+id/userNameTextView"

@@ -172,6 +172,7 @@ public class LoginActivity extends AppCompatActivity {
                                                                             String name = userSnapshot.getString("name");
                                                                             String phone = userSnapshot.getString("phone");
                                                                             String image = userSnapshot.getString("image");
+                                                                            String email = userSnapshot.getString("email");
                                                                             Toast.makeText(getApplicationContext(), "Đăng nhập thành công", Toast.LENGTH_SHORT).show();
 
                                                                             Intent intent = new Intent(LoginActivity.this, ChatUserMain.class);
@@ -179,6 +180,7 @@ public class LoginActivity extends AppCompatActivity {
                                                                             intent.putExtra("name", name);
                                                                             intent.putExtra("phone", phone);
                                                                             intent.putExtra("image", image);
+                                                                            intent.putExtra("email", email);
                                                                             startActivity(intent);
                                                                             finish();
                                                                         }
