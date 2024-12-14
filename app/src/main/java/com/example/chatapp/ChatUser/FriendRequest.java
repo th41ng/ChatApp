@@ -27,7 +27,6 @@ import models.User;
 
 public class FriendRequest extends AppCompatActivity implements UserListener{
 
-    private TextView textErrorMessage;
     private ProgressBar progressBar;
     private RecyclerView usersRecyclerView;
 
@@ -38,7 +37,6 @@ public class FriendRequest extends AppCompatActivity implements UserListener{
         super.onCreate(savedInstanceState);
         setContentView(R.layout.friend_activity_request);
 
-        textErrorMessage = findViewById(R.id.textErrorMessage);
         progressBar = findViewById(R.id.progressBar);
         usersRecyclerView = findViewById(R.id.usersRecyclerView);
         imageBack=findViewById(R.id.btnBack);
@@ -55,7 +53,6 @@ public class FriendRequest extends AppCompatActivity implements UserListener{
     }
     private void showErrorMessage(String message) {
         Toast.makeText(this, message, Toast.LENGTH_SHORT).show();
-        textErrorMessage.setVisibility(View.VISIBLE);
     }
     private void showSuccessMessage(String message) {
         Toast.makeText(this, message, Toast.LENGTH_SHORT).show();

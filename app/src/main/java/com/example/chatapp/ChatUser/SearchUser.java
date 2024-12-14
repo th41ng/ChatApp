@@ -31,7 +31,6 @@ public class SearchUser extends AppCompatActivity implements UserListener {
     private EditText searchEditText;
     private RecyclerView recyclerView;
     private SearchUserAdapter searchUserAdapter;
-    private TextView textErrorMessage;
     private ProgressBar progressBar;
     private FirebaseFirestore database;
     private final List<User> userList = new ArrayList<>();
@@ -42,7 +41,6 @@ public class SearchUser extends AppCompatActivity implements UserListener {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.friend_activity_search_user);
 
-        textErrorMessage = findViewById(R.id.textErrorMessage);
         progressBar = findViewById(R.id.progressBar);
         searchEditText = findViewById(R.id.searchEditText);
         recyclerView = findViewById(R.id.usersRecyclerView);
@@ -121,7 +119,6 @@ public class SearchUser extends AppCompatActivity implements UserListener {
 
     private void showErrorMessage(String message) {
         Toast.makeText(this, message, Toast.LENGTH_SHORT).show();
-        textErrorMessage.setVisibility(View.VISIBLE);
     }
 
     private void showSuccessMessage(String message) {

@@ -34,7 +34,6 @@ import models.AdminRequest;
 
 public class AdminRequestView extends AppCompatActivity implements AdminListener {
 
-    private TextView textErrorMessage;
     private ProgressBar progressBar;
     private RecyclerView usersRecyclerView;
     private ImageView imageBack;
@@ -44,7 +43,6 @@ public class AdminRequestView extends AppCompatActivity implements AdminListener
         super.onCreate(savedInstanceState);
         setContentView(R.layout.friend_activity_admin_request);
 
-        textErrorMessage = findViewById(R.id.textErrorMessage);
         progressBar = findViewById(R.id.progressBar);
         usersRecyclerView = findViewById(R.id.usersRecyclerView);
         imageBack = findViewById(R.id.btnBack);
@@ -60,7 +58,6 @@ public class AdminRequestView extends AppCompatActivity implements AdminListener
 
     private void showErrorMessage(String message) {
         Toast.makeText(this, message, Toast.LENGTH_SHORT).show();
-        textErrorMessage.setVisibility(View.VISIBLE);
     }
 
     private void showSuccessMessage(String message) {

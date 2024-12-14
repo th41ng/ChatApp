@@ -7,6 +7,7 @@ import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.ProgressBar;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.recyclerview.widget.LinearLayoutManager;
@@ -29,7 +30,6 @@ import models.User;
 
 public class UserActivity extends AppCompatActivity implements UserListener{
 
-    private TextView textErrorMessage;
     private ProgressBar progressBar;
     private RecyclerView usersRecyclerView;
     private ImageButton btncreategr;
@@ -40,7 +40,6 @@ public class UserActivity extends AppCompatActivity implements UserListener{
         super.onCreate(savedInstanceState);
         setContentView(R.layout.friend_activity_user);
 
-        textErrorMessage = findViewById(R.id.textErrorMessage);
         progressBar = findViewById(R.id.progressBar);
         usersRecyclerView = findViewById(R.id.usersRecyclerView);
         imageBack=findViewById(R.id.btnBack);
@@ -100,10 +99,6 @@ public class UserActivity extends AppCompatActivity implements UserListener{
     private void setListeners(){
         imageBack.setOnClickListener(view-> getOnBackPressedDispatcher().onBackPressed());
     }
-    private void showErrorMessage() {
-        textErrorMessage.setText("No user available");
-        textErrorMessage.setVisibility(View.VISIBLE);
-    }
     private void loading(Boolean isLoading) {
         if (isLoading) {
             progressBar.setVisibility(View.VISIBLE);
@@ -144,37 +139,43 @@ public class UserActivity extends AppCompatActivity implements UserListener{
                             }
                         }
 
-                        // Lấy danh sách người dùng bạn bè (chỉ lấy bạn bè, không lấy những người không phải bạn)
-                        database.collection("users")
-                                .whereIn(FieldPath.documentId(), friendIds)  // Lọc chỉ lấy những người có trong danh sách bạn bè
-                                .get()
-                                .addOnCompleteListener(userTask -> {
-                                    loading(false);
-                                    if (userTask.isSuccessful() && userTask.getResult() != null) {
-                                        List<User> users = new ArrayList<>();
-                                        for (QueryDocumentSnapshot queryDocumentSnapshot : userTask.getResult()) {
-                                            User user = queryDocumentSnapshot.toObject(User.class);
-                                            user.setUserId(queryDocumentSnapshot.getId());
-                                            user.setFriendStatus("friend");  // Chỉ cần gán trạng thái là "friend"
-                                            users.add(user);
-                                        }
+                        if(friendIds.isEmpty())
+                        {
+                            loading(false);
+                            Toast.makeText(getApplicationContext(), "Không có bạn bè", Toast.LENGTH_SHORT).show();
+                        } else {
+                            // Lấy danh sách người dùng bạn bè (chỉ lấy bạn bè, không lấy những người không phải bạn)
+                            database.collection("users")
+                                    .whereIn(FieldPath.documentId(), friendIds)  // Lọc chỉ lấy những người có trong danh sách bạn bè
+                                    .get()
+                                    .addOnCompleteListener(userTask -> {
+                                        loading(false);
+                                        if (userTask.isSuccessful() && userTask.getResult() != null) {
+                                            List<User> users = new ArrayList<>();
+                                            for (QueryDocumentSnapshot queryDocumentSnapshot : userTask.getResult()) {
+                                                User user = queryDocumentSnapshot.toObject(User.class);
+                                                user.setUserId(queryDocumentSnapshot.getId());
+                                                user.setFriendStatus("friend");  // Chỉ cần gán trạng thái là "friend"
+                                                users.add(user);
+                                            }
 
-                                        // Hiển thị danh sách
-                                        if (!users.isEmpty()) {
-                                            UsersAdapter usersAdapter = new UsersAdapter(users, this);
-                                            usersRecyclerView.setLayoutManager(new LinearLayoutManager(this));
-                                            usersRecyclerView.setAdapter(usersAdapter);
-                                            usersRecyclerView.setVisibility(View.VISIBLE);
+                                            // Hiển thị danh sách
+                                            if (!users.isEmpty()) {
+                                                UsersAdapter usersAdapter = new UsersAdapter(users, this);
+                                                usersRecyclerView.setLayoutManager(new LinearLayoutManager(this));
+                                                usersRecyclerView.setAdapter(usersAdapter);
+                                                usersRecyclerView.setVisibility(View.VISIBLE);
+                                            } else {
+                                                Toast.makeText(getApplicationContext(), "Không có danh sách", Toast.LENGTH_SHORT).show();
+                                            }
                                         } else {
-                                            showErrorMessage();
+                                            Toast.makeText(getApplicationContext(), "Lỗi lấy dữ liệu thất bại", Toast.LENGTH_SHORT).show();
                                         }
-                                    } else {
-                                        showErrorMessage();
-                                    }
-                                });
+                                    });
+                        }
                     } else {
                         loading(false);
-                        showErrorMessage();
+                        Toast.makeText(getApplicationContext(), "Lấy dữ liệu không thành công", Toast.LENGTH_SHORT).show();
                     }
                 });
     }

@@ -35,17 +35,6 @@
         app:layout_constraintTop_toBottomOf="@+id/searchLayout"
         app:layout_constraintVertical_bias="0.375" />
 
-    <TextView
-        android:id="@+id/textErrorMessage"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_gravity="center"
-        android:gravity="center"
-        android:textColor="#DB1A1A"
-        android:textSize="12sp"
-        android:visibility="gone"
-        app:layout_constraintBottom_toBottomOf="@+id/btnBack"
-        app:layout_constraintEnd_toEndOf="@+id/btnBack" />
 
     <ImageButton
         android:id="@+id/btnBack"
