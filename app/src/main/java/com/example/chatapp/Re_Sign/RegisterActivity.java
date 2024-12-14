@@ -11,6 +11,7 @@ import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ProgressBar;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
@@ -30,10 +31,11 @@ public class RegisterActivity extends AppCompatActivity {
 
     private EditText mname, emailedit, passedit, mphone;
     private EditText confirmPassEdit;
+    private TextView tvLogin;
     private FirebaseFirestore db;
     private Button btnRegister;
     private FirebaseAuth mAuth;
-   // private ProgressBar progressBar;
+    // private ProgressBar progressBar;
 
     private static final String TAG = "RegisterActivity";
 
@@ -53,6 +55,7 @@ public class RegisterActivity extends AppCompatActivity {
         confirmPassEdit = findViewById(R.id.confirmpass);
         mphone = findViewById(R.id.phone);
         btnRegister = findViewById(R.id.btnRegister);
+        tvLogin = findViewById(R.id.haveAC);
 
         btnRegister.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -60,6 +63,17 @@ public class RegisterActivity extends AppCompatActivity {
                 register();
             }
         });
+        tvLogin.setOnClickListener(new View.OnClickListener() {
+
+            @Override
+            public void onClick(View view) {
+                // Chuyển đến màn hình đăng nhập
+                Intent intent = new Intent(RegisterActivity.this, LoginActivity.class);
+                startActivity(intent);
+                finish(); // Kết thúc hoạt động này để không quay lại trang đăng ký
+            }
+        });
+
         // Xử lý sự kiện chạm để ẩn/hiện mật khẩu
         passedit.setOnTouchListener(new View.OnTouchListener() {
             @Override

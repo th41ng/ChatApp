@@ -59,6 +59,7 @@
         android:background="@drawable/border"
         android:drawableStart="@drawable/baseline_person_pin_24"
         android:drawablePadding="12dp"
+
         android:hint="Tên của bạn"
         android:inputType="text"
         android:paddingStart="16dp"

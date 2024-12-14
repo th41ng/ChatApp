@@ -175,6 +175,7 @@ public class LoginActivity extends AppCompatActivity {
                                                                             String email = userSnapshot.getString("email");
                                                                             Toast.makeText(getApplicationContext(), "Đăng nhập thành công", Toast.LENGTH_SHORT).show();
 
+                                                                            rememberUser(email, pass, chkRememberPass.isChecked());
                                                                             Intent intent = new Intent(LoginActivity.this, ChatUserMain.class);
                                                                             intent.putExtra("userId", userId);
                                                                             intent.putExtra("name", name);
