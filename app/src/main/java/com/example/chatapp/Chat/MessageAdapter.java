@@ -4,6 +4,7 @@ import android.app.MediaRouteButton;
 import android.content.Context;
 import android.graphics.Color;
 import android.os.Handler;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -14,6 +15,8 @@ import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 import com.example.chatapp.R;
 import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.firestore.DocumentReference;
+import com.google.firebase.firestore.FirebaseFirestore;
 
 import java.util.List;
 
@@ -103,6 +106,7 @@ public class MessageAdapter extends RecyclerView.Adapter<MessageAdapter.ViewHold
                 holder.messagetextViewSystem.setVisibility(View.GONE);
                 if (position == 0 || !messageList.get(position - 1).getSenderId().equals(senderId)) {
                     // Hiển thị avatar nếu là tin nhắn đầu tiên hoặc khác người gửi trước đó
+                    setImage(holder.imageViewAvtReceiver, senderId, holder.itemView.getContext());
                     holder.imageViewAvtReceiver.setVisibility(View.VISIBLE);
                 } else {
                     holder.imageViewAvtReceiver.setVisibility(View.INVISIBLE);
@@ -132,6 +136,7 @@ public class MessageAdapter extends RecyclerView.Adapter<MessageAdapter.ViewHold
                 holder.messageTextViewSender.setVisibility(View.GONE);
                 // Tin nhắn văn bản từ người khác
                 if (position == 0 || !messageList.get(position - 1).getSenderId().equals(senderId)) {
+                    setImage(holder.imageViewAvtReceiver, senderId, holder.itemView.getContext());
                     holder.imageViewAvtReceiver.setVisibility(View.VISIBLE);
                 } else {
                     holder.imageViewAvtReceiver.setVisibility(View.INVISIBLE);
@@ -146,9 +151,12 @@ public class MessageAdapter extends RecyclerView.Adapter<MessageAdapter.ViewHold
         return messageList.size();
     }
     // Trả về danh sách tin nhắn
+
     public List<Message> getMessageList() {
         return messageList;
     }
+
+
     // ViewHolder giữ các tham chiếu đến các View trong mỗi item tin nhắn
     static class ViewHolder extends RecyclerView.ViewHolder {
         ImageView imageViewAvtReceiver;
@@ -167,5 +175,32 @@ public class MessageAdapter extends RecyclerView.Adapter<MessageAdapter.ViewHold
             messageTextViewReceiver = itemView.findViewById(R.id.messageTextViewReceiver);
             messagetextViewSystem= itemView.findViewById(R.id.messagetextViewSystem);
         }
+    }
+    private void setImage(ImageView imageView, String userId, Context context) {
+        FirebaseFirestore db = FirebaseFirestore.getInstance();
+        DocumentReference userDoc = db.collection("users").document(userId);
+
+        userDoc.get()
+                .addOnCompleteListener(task -> {
+                    if (task.isSuccessful() && task.getResult() != null) {
+                        String imageUrl = task.getResult().getString("image"); // Trường 'image' lưu URL ảnh
+                        if (imageUrl != null) {
+                            // Sử dụng Glide để tải ảnh từ URL
+                            Glide.with(context)
+                                    .load(imageUrl)
+                                    .placeholder(R.drawable.default_avatar)
+                                    .into(imageView);
+                        } else {
+                            imageView.setImageResource(R.drawable.default_avatar); // Hình mặc định
+                        }
+                    } else {
+                        imageView.setImageResource(R.drawable.default_avatar); // Hình mặc định
+                        Log.d("FriendRequest", "Lỗi khi lấy dữ liệu Firestore");
+                    }
+                })
+                .addOnFailureListener(e -> {
+                    imageView.setImageResource(R.drawable.default_avatar); // Hình mặc định
+                    Log.d("FriendRequest", "Lỗi khi lấy dữ liệu Firestore", e);
+                });
     }
 }

@@ -15,6 +15,7 @@ import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.chatapp.R;
+import com.example.chatapp.Re_Sign.LoginActivity;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
@@ -42,7 +43,8 @@ public class ChatInfo extends AppCompatActivity {
     private LS_addTVAdapter ls_addTVAdapter;  // Add the adapter for friends not in group
 
     private List<User> friendsList = new ArrayList<>(); // List to store friends not in the group
-
+    private boolean isDSTVExpanded = false; // Trạng thái cho LS_DSTV
+    private boolean isAddTVExpanded = false; // Trạng thái cho LS_addTV
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -79,9 +81,8 @@ public class ChatInfo extends AppCompatActivity {
         // Handle back button click
         btnBack.setOnClickListener(v -> finish());
 
-        // Handle expand/collapse functionality
-        expandDSTV.setOnClickListener(v -> toggleVisibility(LS_DSTV));
-        expandAddTV.setOnClickListener(v -> toggleVisibility(LS_addTV));
+        setupExpandCollapseFunctionality();
+
         deleteGroup.setOnClickListener(v -> {
             new AlertDialog.Builder(this)
                     .setTitle("Xóa nhóm")
@@ -96,8 +97,6 @@ public class ChatInfo extends AppCompatActivity {
         // Fetch the group members and friends not in group
         showGroupMembers();
         showFriendsNotInGroup();
-
-
 
         // Lấy tham chiếu Realtime Database
         DatabaseReference databaseReference = FirebaseDatabase.getInstance().getReference();
@@ -118,11 +117,36 @@ public class ChatInfo extends AppCompatActivity {
                         Log.d("ChatInfo", "Failed to fetch chat room owner", error.toException());
                     }
                 });
-
-
-
-
     }
+
+    private void setupExpandCollapseFunctionality() {
+        // Handle expand/collapse for LS_DSTV
+        expandDSTV.setOnClickListener(v -> {
+            isDSTVExpanded = !isDSTVExpanded; // Toggle state
+            toggleVisibility(LS_DSTV); // Show/hide the list
+            updateButtonImage(expandDSTV, isDSTVExpanded); // Update button icon
+        });
+        // Handle expand/collapse for LS_addTV
+        expandAddTV.setOnClickListener(v -> {
+            isAddTVExpanded = !isAddTVExpanded; // Toggle state
+            toggleVisibility(LS_addTV); // Show/hide the list
+            updateButtonImage(expandAddTV, isAddTVExpanded); // Update button icon
+        });
+    }
+    // Update button image based on state
+    private void updateButtonImage(ImageButton button, boolean isExpanded) {
+        if (isExpanded) {
+            button.setImageResource(R.drawable.collapse); // Icon for expanded state
+        } else {
+            button.setImageResource(R.drawable.expand); // Icon for collapsed state
+        }
+    }
+    // Toggle visibility of a given view
+    private void toggleVisibility(View view) {
+        view.setVisibility(view.getVisibility() == View.VISIBLE ? View.GONE : View.VISIBLE);
+    }
+
+
     private void deleteGroupFromFirebase() {
         DatabaseReference dbRef = FirebaseDatabase.getInstance().getReference();
 
@@ -135,42 +159,9 @@ public class ChatInfo extends AppCompatActivity {
                         Log.e("DeleteGroup", "Failed to remove chat room from chatRooms", task.getException());
                     }
                 });
-
-        dbRef.child("messages").child(chatRoomId).removeValue()
-                .addOnCompleteListener(task -> {
-                    if (task.isSuccessful()) {
-                        Log.d("DeleteGroup", "Messages related to the group have been deleted.");
-                    } else {
-                        Log.e("DeleteGroup", "Failed to delete messages related to the group", task.getException());
-                    }
-                });
-
-        dbRef.child("typingStatus").child(chatRoomId).removeValue()
-                .addOnCompleteListener(task -> {
-                    if (task.isSuccessful()) {
-                        Log.d("DeleteGroup", "Typing status has been removed.");
-                    } else {
-                        Log.e("DeleteGroup", "Failed to remove typing status", task.getException());
-                    }
-                });
-
-        dbRef.child("participants").child(chatRoomId).removeValue()
-                .addOnCompleteListener(task -> {
-                    if (task.isSuccessful()) {
-                        Log.d("DeleteGroup", "Participants have been removed.");
-                    } else {
-                        Log.e("DeleteGroup", "Failed to remove participants", task.getException());
-                    }
-                });
-
-        dbRef.child("notifications").child(chatRoomId).removeValue()
-                .addOnCompleteListener(task -> {
-                    if (task.isSuccessful()) {
-                        Log.d("DeleteGroup", "Notifications related to the group have been deleted.");
-                    } else {
-                        Log.e("DeleteGroup", "Failed to delete notifications", task.getException());
-                    }
-                });
+        Intent intent = new Intent(ChatInfo.this, LoginActivity.class);
+        startActivity(intent);
+        finish();
     }
     @Override
     protected void onStart() {
@@ -179,11 +170,6 @@ public class ChatInfo extends AppCompatActivity {
         showGroupMembers();
         showFriendsNotInGroup();
 
-    }
-
-    private void toggleVisibility(View view) {
-        int currentVisibility = view.getVisibility();
-        view.setVisibility(currentVisibility == View.GONE ? View.VISIBLE : View.GONE);
     }
 
     private void fetchGroupLeaderName() {

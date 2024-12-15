@@ -85,6 +85,7 @@
 
     <!-- Password Input -->
     <EditText
+        android:paddingEnd="15dp"
         android:id="@+id/password"
         android:layout_width="0dp"
         android:layout_height="50dp"

@@ -1,5 +1,3 @@
-
-
 package com.example.chatapp.Chat;
 
 import android.content.Intent;
@@ -8,11 +6,17 @@ import android.widget.EditText;
 import android.widget.ImageButton;
 import android.widget.Toast;
 
+import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.chatapp.R;
+import com.google.firebase.database.DataSnapshot;
+import com.google.firebase.database.DatabaseError;
+import com.google.firebase.database.DatabaseReference;
+import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.database.ValueEventListener;
 import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FieldPath;
 import com.google.firebase.firestore.FirebaseFirestore;
@@ -32,14 +36,14 @@ public class groupChat extends AppCompatActivity {
     private ImageButton btnBack;
     private RecyclerView allFrRecyclerView;
     private Set<String> selectedUserIds = new HashSet<>(); // Lưu các ID đã chọn
-    EditText groupname;
-    String groupName;
+    private EditText groupname;
+    private String groupName;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_group_chat);
-        groupname=findViewById(R.id.groupname);
+        groupname = findViewById(R.id.groupname);
 
         btnBack = findViewById(R.id.btnBack);
         btnBack.setOnClickListener(view -> getOnBackPressedDispatcher().onBackPressed());
@@ -104,6 +108,7 @@ public class groupChat extends AppCompatActivity {
                     }
                 });
     }
+
     private void createGroup(Set<String> selectedUserIds) {
         String currentUserId = getIntent().getStringExtra("userId");
         selectedUserIds.add(currentUserId); // Thêm ID của người dùng hiện tại vào nhóm
@@ -117,22 +122,42 @@ public class groupChat extends AppCompatActivity {
         // Chuyển danh sách ID thành chuỗi
         String friendIds = String.join(",", selectedUserIds);
 
-        // Lưu thông tin nhóm vào Firestore
-        FirebaseFirestore db = FirebaseFirestore.getInstance();
-        GroupChatRoom groupChatRoom = new GroupChatRoom(chatRoomId,currentUserId, new ArrayList<>(selectedUserIds), System.currentTimeMillis());
+        // Kiểm tra sự tồn tại của chatRoomId trong Realtime Database
+        DatabaseReference databaseReference = FirebaseDatabase.getInstance().getReference("chatRooms");
+        databaseReference.child(chatRoomId).addListenerForSingleValueEvent(new ValueEventListener() {
+            @Override
+            public void onDataChange(@NonNull DataSnapshot snapshot) {
+                if (snapshot.exists()) {
+                    // ChatRoomId đã tồn tại
+                    Toast.makeText(groupChat.this, "Chat room already exists. Please try with different users.", Toast.LENGTH_SHORT).show();
+                } else {
+                    // ChatRoomId chưa tồn tại, lưu vào Firestore
+                    saveGroupToFirestore(chatRoomId, currentUserId, selectedUserIds, friendIds);
+                }
+            }
 
+            @Override
+            public void onCancelled(@NonNull DatabaseError error) {
+                Toast.makeText(groupChat.this, "Failed to check chat room existence: " + error.getMessage(), Toast.LENGTH_SHORT).show();
+            }
+        });
+    }
+
+    private void saveGroupToFirestore(String chatRoomId, String managerId, Set<String> userIds, String friendIds) {
+        FirebaseFirestore db = FirebaseFirestore.getInstance();
+
+        GroupChatRoom groupChatRoom = new GroupChatRoom(chatRoomId, managerId, new ArrayList<>(userIds), System.currentTimeMillis());
         db.collection("chatRooms").document(chatRoomId)
                 .set(groupChatRoom)
                 .addOnCompleteListener(task -> {
                     if (task.isSuccessful()) {
                         Toast.makeText(this, "Group created successfully!", Toast.LENGTH_SHORT).show();
-
                         // Chuyển sang giao diện chat nhóm
                         Intent intent = new Intent(this, Chats.class);
                         intent.putExtra("chatRoomId", chatRoomId); // ID phòng chat
-                        intent.putExtra("managerId",currentUserId);//ID người quản lý
-                        intent.putExtra("friendName", groupName);  // Tên nhóm
-                        intent.putExtra("friendId", friendIds);    // Danh sách ID
+                        intent.putExtra("managerId", managerId);   // ID người quản lý
+                        intent.putExtra("friendName", groupName); // Tên nhóm
+                        intent.putExtra("friendId", friendIds);   // Danh sách ID
                         startActivity(intent);
                         finish();
                     } else {
@@ -140,6 +165,7 @@ public class groupChat extends AppCompatActivity {
                     }
                 });
     }
+
     private String createChatRoomID(Set<String> userIds) {
         List<String> sortedUserIds = new ArrayList<>(userIds);
         Collections.sort(sortedUserIds); // Sắp xếp để đảm bảo tính duy nhất
@@ -154,6 +180,4 @@ public class groupChat extends AppCompatActivity {
         }
         return chatRoomIdBuilder.toString();
     }
-
-
 }

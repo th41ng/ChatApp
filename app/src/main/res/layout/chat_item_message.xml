@@ -60,17 +60,19 @@
         app:layout_constraintTop_toTopOf="parent"
         app:layout_constraintVertical_bias="0.0" />
 
-    <ImageView
+    <com.google.android.material.imageview.ShapeableImageView
         android:id="@+id/imageViewAvtReceiver"
         android:layout_width="35dp"
-        android:layout_height="40dp"
+        android:layout_height="35dp"
         android:visibility="gone"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toStartOf="@+id/messageTextViewReceiver"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
         app:layout_constraintVertical_bias="0.0"
-        app:srcCompat="@drawable/default_avatar" />
+        app:srcCompat="@drawable/default_avatar"
+        app:shapeAppearanceOverlay="@style/RoundedShape"
+        android:scaleType="centerCrop"/>
 
     <TextView
         android:id="@+id/messagetextViewSystem"

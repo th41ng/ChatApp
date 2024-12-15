@@ -34,7 +34,7 @@ public class LS_DSTVAdapter extends RecyclerView.Adapter<LS_DSTVAdapter.ViewHold
 
     @Override
     public ViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
-        View itemView = LayoutInflater.from(parent.getContext()).inflate(R.layout.chat_item_addtv, parent, false);
+        View itemView = LayoutInflater.from(parent.getContext()).inflate(R.layout.chat_item_dstv, parent, false);
         return new ViewHolder(itemView);
     }
 

@@ -5,27 +5,29 @@
     android:layout_height="wrap_content"
     android:padding="12dp"
     android:background="@drawable/border"
-    android:gravity="center_vertical">
+    android:gravity="center_vertical"
+    android:layout_margin="5dp">
 
     <!-- Thông tin tên thành viên -->
+
+    <!-- Nút Xóa thành viên khỏi nhóm -->
     <TextView
         android:id="@+id/NameTextView"
         android:layout_width="0dp"
-        android:layout_height="wrap_content"
+        android:layout_height="42dp"
         android:layout_weight="1"
-        android:text="Member Name"
-        android:textSize="16sp"
-        android:textColor="#000000"
-        android:paddingStart="10dp"
+        android:background="@drawable/border"
         android:ellipsize="end"
         android:maxLines="1"
-        android:background="@drawable/border" />
+        android:paddingStart="10dp"
+        android:text="Member Name"
+        android:textColor="#000000"
+        android:textSize="16sp" />
 
-    <!-- Nút Xóa thành viên khỏi nhóm -->
     <ImageButton
         android:id="@+id/addMemberButton"
-        android:layout_width="57dp"
-        android:layout_height="46dp"
+        android:layout_width="46dp"
+        android:layout_height="39dp"
         android:layout_marginStart="10dp"
         android:background="?android:attr/selectableItemBackgroundBorderless"
         android:scaleType="centerInside"

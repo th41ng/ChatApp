@@ -1,5 +1,7 @@
 package com.example.chatapp.Chat;
 
+import android.app.ProgressDialog;
+import android.content.Context;
 import android.content.Intent;
 import android.net.Uri;
 import android.os.Bundle;
@@ -20,6 +22,8 @@ import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
+
+import com.bumptech.glide.Glide;
 import com.cloudinary.android.callback.ErrorInfo;
 import com.example.chatapp.ChatUser.UserListener;
 import com.example.chatapp.ChatUser.UsersAdapter;
@@ -74,6 +78,9 @@ public class Chats extends AppCompatActivity implements UserListener {
     private TextView istyping;
     private TextView onl;
     private ImageButton btnBack;
+    private ImageView avt;
+    private ProgressDialog progressDialog;
+
     ArrayList<String> participantsList = new ArrayList<>();
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -90,14 +97,16 @@ public class Chats extends AppCompatActivity implements UserListener {
         infoChatBtn = findViewById(R.id.infoChatBtn);
         istyping = findViewById(R.id.istyping);
         btnBack = findViewById(R.id.btnBack);
-        if (btnBack == null) {
-            Log.e("Chats", "btnBack not found in layout!");
-        }
-
+        avt= findViewById(R.id.avt);
         messageList = new ArrayList<>();
         MessageAdapter = new MessageAdapter(this, messageList);
         recyclerViewMessages.setLayoutManager(new LinearLayoutManager(this));
         recyclerViewMessages.setAdapter(MessageAdapter);
+
+        progressDialog = new ProgressDialog(this);
+        progressDialog.setMessage("Uploading image...");
+        progressDialog.setCancelable(false);
+
 
         onl = findViewById(R.id.onl);
         //Lấy id người dùng hện tại
@@ -108,8 +117,17 @@ public class Chats extends AppCompatActivity implements UserListener {
             Toast.makeText(this, "User not authenticated. Please log in.", Toast.LENGTH_SHORT).show();
         }
 
+
         friendId = getIntent().getStringExtra("friendId");
         Log.d("friend","friendId:"+friendId);
+        if (friendId != null) {
+            setImage(avt, friendId, this);
+        } else {
+            Log.e("setImage", "currentUserId is null. Unable to load user image.");
+            avt.setImageResource(R.drawable.default_avatar);
+        }
+
+
         friendName = getIntent().getStringExtra("friendName");
         chatwith.setText(friendName);
         CloudinaryManager.initialize(this);
@@ -145,9 +163,7 @@ public class Chats extends AppCompatActivity implements UserListener {
             Log.d("Chats", "Back button clicked!");
             finish();
         });
-
         //kết thúc sự kiện onclick
-
         //Nhận timestamp để cuộn tới
         long messageTimestamp = getIntent().getLongExtra("messageTimestamp", -1);
         if (messageTimestamp != -1) {
@@ -160,17 +176,13 @@ public class Chats extends AppCompatActivity implements UserListener {
             Log.d("Chats", "No valid timestamp received.");
         }
         //kết thuúc nhận timestamp để cuộn tới
-
-
         // Thêm TextWatcher cho ô tin nhắn để kiểm tra trạng thái "đang gõ"
         MessageInput.addTextChangedListener(new TextWatcher() {
             private Handler handler = new Handler();
             private Runnable stopTyping = () -> setTypingStatus(false);
-
             @Override
             public void beforeTextChanged(CharSequence s, int start, int count, int after) {
             }
-
             @Override
             public void onTextChanged(CharSequence s, int start, int before, int count) {
                 // Kiểm tra nếu ô tin nhắn không trống thì gọi setTypingStatus(true)
@@ -180,16 +192,45 @@ public class Chats extends AppCompatActivity implements UserListener {
                 } else {
                     setTypingStatus(false); // Nếu ô tin nhắn trống thì dừng trạng thái "đang gõ"
                 }
-                //handler.removeCallbacks(stopTyping);
-                //handler.postDelayed(stopTyping, 2000); // Dừng sau 2 giây không gõ
             }
-
             @Override
             public void afterTextChanged(Editable s) {
             }
         });
         listenForTypingStatus();
         //kết thúc TextWatcher cho ô tin nhắn để kiểm tra trạng thái "đang gõ"
+    }
+
+    private void setImage(ImageView avt, String userId, Context context) {
+        if (userId == null || userId.isEmpty()) {
+            Log.e("setImage", "Invalid userId provided.");
+            avt.setImageResource(R.drawable.default_avatar);
+            return;
+        }
+
+        FirebaseFirestore db = FirebaseFirestore.getInstance();
+        DocumentReference userDoc = db.collection("users").document(userId);
+        userDoc.get()
+                .addOnCompleteListener(task -> {
+                    if (task.isSuccessful() && task.getResult() != null) {
+                        String imageUrl = task.getResult().getString("image");
+                        if (imageUrl != null) {
+                            Glide.with(context)
+                                    .load(imageUrl)
+                                    .placeholder(R.drawable.default_avatar)
+                                    .into(avt);
+                        } else {
+                            avt.setImageResource(R.drawable.default_avatar);
+                        }
+                    } else {
+                        avt.setImageResource(R.drawable.default_avatar);
+                        Log.d("setImage", "Failed to fetch user document.");
+                    }
+                })
+                .addOnFailureListener(e -> {
+                    avt.setImageResource(R.drawable.default_avatar);
+                    Log.d("setImage", "Error fetching user document", e);
+                });
     }
 
 
@@ -294,6 +335,8 @@ public class Chats extends AppCompatActivity implements UserListener {
         messagesRef.setValue(welcomeMessage).addOnCompleteListener(task -> {});
     }
     @Override
+
+
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
         Log.d("Chats", "onActivityResult called with requestCode: " + requestCode + " and resultCode: " + resultCode);
@@ -362,6 +405,8 @@ public class Chats extends AppCompatActivity implements UserListener {
         }
     }
     private void uploadImageToCloudinary(String imageUri, OnImageUploadedListener listener) {
+        progressDialog.show(); // Show the loader
+
         MediaManager.get().upload(Uri.parse(imageUri)).callback(new com.cloudinary.android.callback.UploadCallback() {
             @Override
             public void onStart(String requestId) {}
@@ -369,11 +414,13 @@ public class Chats extends AppCompatActivity implements UserListener {
             public void onProgress(String requestId, long bytes, long totalBytes) {}
             @Override
             public void onSuccess(String requestId, Map resultData) {
+
                 String imageUrl = (String) resultData.get("secure_url"); // Get the uploaded image URL (https)
                 listener.onImageUploaded(imageUrl); // Callback with the image URL
             }
             @Override
             public void onError(String requestId, ErrorInfo error) {
+                progressDialog.dismiss(); // Hide the loader
                 listener.onImageUploaded(null); // If an error occurs, callback with null
             }
             @Override
@@ -389,7 +436,6 @@ public class Chats extends AppCompatActivity implements UserListener {
             }
         });
     }
-
     interface OnImageUploadedListener {
         void onImageUploaded(String imageUrl);
     }
@@ -484,12 +530,16 @@ public class Chats extends AppCompatActivity implements UserListener {
             @Override
             public void onDataChange(@NonNull DataSnapshot snapshot) {
                 String status = snapshot.getValue(String.class);
-                if ("online".equals(status)) {
-                    onl.setText("Online");
-                    onl.setVisibility(View.VISIBLE);
-                } else {
-                    onl.setText("Offline");
-                    onl.setVisibility(View.VISIBLE);
+                if(friendId.startsWith("GROUP_") || friendId.contains(",")){
+                    onl.setText("");
+                }else{
+                    if ("online".equals(status)) {
+                        onl.setText("Online");
+                        onl.setVisibility(View.VISIBLE);
+                    } else {
+                        onl.setText("Offline");
+                        onl.setVisibility(View.VISIBLE);
+                    }
                 }
             }
             @Override
@@ -500,10 +550,8 @@ public class Chats extends AppCompatActivity implements UserListener {
     }
     private void activityInfoChatBtn(){
         // Tạo một danh sách các lựa chọn
-        if(friendId.startsWith("GROUP_")){
+        if(friendId.startsWith("GROUP_") || friendId.contains(",")){
             String[] options = { "Thông tin nhóm","Tìm kiếm tin nhắn trong nhóm","Chuyển vai trò quản lý", "Hủy"};
-
-
             // Hiển thị AlertDialog
             new AlertDialog.Builder(this)
                     .setTitle("Lựa chọn thao tác" )

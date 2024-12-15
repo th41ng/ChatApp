@@ -21,7 +21,7 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
 
-    <ImageButton
+    <com.google.android.material.imageview.ShapeableImageView
         android:id="@+id/imageButton"
         android:layout_width="55dp"
         android:layout_height="55dp"
@@ -33,7 +33,8 @@
         android:scaleType="centerCrop"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
-        app:srcCompat="@drawable/default_avatar" />
+        app:srcCompat="@drawable/default_avatar"
+        app:shapeAppearanceOverlay="@style/RoundedShape"/>
 
     <TextView
         android:id="@+id/textName"

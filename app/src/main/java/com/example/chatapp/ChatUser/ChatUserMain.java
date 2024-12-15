@@ -43,7 +43,7 @@ import java.util.List;
 
 public class ChatUserMain extends AppCompatActivity  {
     TextView name;
-    ImageButton image;
+    ImageView image;
     ImageButton btnSignout;
     ImageButton btnfriend,btnfindfriend;
     ImageButton btnhome;
@@ -113,7 +113,7 @@ public class ChatUserMain extends AppCompatActivity  {
             setImage(image,currentUserID,this);
         }
     }
-    private void setImage(ImageButton imageView, String userId, Context context) {
+    private void setImage(ImageView imageView, String userId, Context context) {
         FirebaseFirestore db = FirebaseFirestore.getInstance();
         DocumentReference userDoc = db.collection("users").document(userId);
 

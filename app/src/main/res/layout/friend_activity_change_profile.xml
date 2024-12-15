@@ -40,7 +40,7 @@
 
     <!-- Full Name TextView and EditText -->
 
-    <ImageButton
+    <com.google.android.material.imageview.ShapeableImageView
         android:id="@+id/imageButton"
         android:layout_width="100dp"
         android:layout_height="100dp"
@@ -52,7 +52,8 @@
         android:scaleType="centerCrop"
         app:layout_constraintStart_toEndOf="@id/textViewTen"
         app:layout_constraintTop_toTopOf="@id/textViewTitle"
-        app:srcCompat="@drawable/default_avatar" />
+        app:srcCompat="@drawable/default_avatar"
+        app:shapeAppearanceOverlay="@style/RoundedShape"/>
 
     <EditText
         android:id="@+id/fullname"

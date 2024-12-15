@@ -35,7 +35,7 @@ import java.util.Map;
 public class ChangeProfile extends AppCompatActivity {
     private EditText fullname,email,phone,password,confirmNewPass,confirmpass;
     private Button btnSave;
-    private ImageButton imageButton;
+    private ImageView imageButton;
     private ImageView imageBack;
     private FirebaseAuth mAuth;
     // Khai báo ActivityResultLauncher

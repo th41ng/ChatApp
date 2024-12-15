@@ -46,14 +46,14 @@
         android:layout_width="233dp"
         android:layout_height="47dp"
         android:layout_marginStart="28dp"
-        android:layout_marginTop="48dp"
+        android:layout_marginTop="56dp"
         android:background="@drawable/border"
         android:ems="10"
         android:hint="Tên nhóm"
         android:inputType="text"
         android:paddingLeft="10dp"
         app:layout_constraintEnd_toStartOf="@+id/btncreate"
-        app:layout_constraintHorizontal_bias="0.533"
+        app:layout_constraintHorizontal_bias="1.0"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/tennhom" />
 
@@ -61,46 +61,46 @@
         android:id="@+id/tennhom"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginEnd="176dp"
-        android:text="Tạo nhóm"
+        android:layout_marginEnd="32dp"
+        android:text="TẠO NHÓM"
+        android:textSize="24sp"
+        android:textStyle="bold"
         app:layout_constraintBottom_toBottomOf="@+id/materialToolbar4"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.994"
+        app:layout_constraintHorizontal_bias="0.567"
         app:layout_constraintStart_toStartOf="@+id/materialToolbar4"
         app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintVertical_bias="0.509" />
+        app:layout_constraintVertical_bias="0.551" />
 
     <ImageButton
         android:id="@+id/btncreate"
-        android:layout_width="84dp"
-        android:layout_height="64dp"
-        android:layout_marginEnd="36dp"
+        android:layout_width="81dp"
+        android:layout_height="61dp"
+        android:layout_marginTop="29dp"
+        android:layout_marginEnd="40dp"
         android:backgroundTint="#00FFFFFF"
-        android:scaleType="fitCenter"
+        android:scaleType="centerCrop"
         android:tint="#FFFFFF"
-        app:layout_constraintBottom_toBottomOf="@+id/groupname"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintTop_toTopOf="@+id/groupname"
-        app:layout_constraintVertical_bias="0.0"
+        app:layout_constraintTop_toBottomOf="@+id/materialToolbar4"
         app:srcCompat="@drawable/create" />
 
     <com.google.android.material.appbar.MaterialToolbar
         android:id="@+id/materialToolbar7"
-        android:layout_width="412dp"
-        android:layout_height="663dp"
+        android:layout_width="395dp"
+        android:layout_height="643dp"
         android:layout_marginBottom="16dp"
         android:background="@drawable/border"
         android:minHeight="?attr/actionBarSize"
         android:theme="?attr/actionBarTheme"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.0"
         app:layout_constraintStart_toStartOf="parent" />
 
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/all_fr"
-        android:layout_width="410dp"
-        android:layout_height="684dp"
+        android:layout_width="394dp"
+        android:layout_height="681dp"
         app:layout_constraintBottom_toBottomOf="@+id/materialToolbar7"
         app:layout_constraintEnd_toEndOf="@+id/materialToolbar7"
         app:layout_constraintHorizontal_bias="1.0"
@@ -112,12 +112,11 @@
         android:id="@+id/groupname"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginStart="44dp"
-        android:layout_marginTop="80dp"
+        android:layout_marginStart="64dp"
+        android:layout_marginTop="16dp"
         android:text="Nhập tên nhóm"
-        app:layout_constraintBottom_toTopOf="@+id/groupname"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent" />
+        app:layout_constraintTop_toBottomOf="@+id/materialToolbar4" />
 
     <!-- ProgressBar -->
 
