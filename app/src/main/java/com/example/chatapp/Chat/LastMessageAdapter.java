@@ -24,9 +24,13 @@ import com.google.firebase.firestore.DocumentReference;
 import com.google.firebase.firestore.FirebaseFirestore;
 
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
+import java.util.Map;
 
 import models.Message;
 import models.User;
@@ -39,7 +43,11 @@ public class LastMessageAdapter extends RecyclerView.Adapter<LastMessageAdapter.
     public LastMessageAdapter(Context context, List<Message> messageList) {
         this.context = context;
         this.messageList = messageList;
+
     }
+
+
+
 
     @NonNull
     @Override
@@ -85,15 +93,20 @@ public class LastMessageAdapter extends RecyclerView.Adapter<LastMessageAdapter.
             context.startActivity(intent);
         });
 
-        //Thể hiện trạng thái của user
-        DatabaseReference usersRef = FirebaseDatabase.getInstance().getReference("users").child(message.getFriendId()).child("status");
-        usersRef.addValueEventListener(new ValueEventListener() {
+        // Thể hiện trạng thái của user (tránh lắng nghe nhiều lần)
+        setUserStatus(holder, message.getFriendId());
+    }
+
+    private void setUserStatus(@NonNull ViewHolder holder, String friendId) {
+        // Lắng nghe trạng thái của người dùng chỉ một lần
+        DatabaseReference usersRef = FirebaseDatabase.getInstance().getReference("users").child(friendId).child("status");
+        usersRef.addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
             public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
                 String status = dataSnapshot.getValue(String.class);
                 // Xử lý trạng thái người dùng
-                if (status!=null && status.equals("online")) {
-                    holder.viewStatus.setBackgroundResource(R.drawable.status_online_circle);// Hình tròn xanh
+                if ("online".equals(status)) {
+                    holder.viewStatus.setBackgroundResource(R.drawable.status_online_circle); // Hình tròn xanh
                 } else {
                     holder.viewStatus.setBackgroundResource(R.drawable.status_offline_circle); // Hình tròn xám
                 }
@@ -105,32 +118,62 @@ public class LastMessageAdapter extends RecyclerView.Adapter<LastMessageAdapter.
             }
         });
     }
-    private void setImage(ImageView imageView, String userId, Context context) {
-        FirebaseFirestore db = FirebaseFirestore.getInstance();
-        DocumentReference userDoc = db.collection("users").document(userId);
 
-        userDoc.get()
-                .addOnCompleteListener(task -> {
-                    if (task.isSuccessful() && task.getResult() != null) {
-                        String imageUrl = task.getResult().getString("image"); // Trường 'image' lưu URL ảnh
-                        if (imageUrl != null) {
-                            // Sử dụng Glide để tải ảnh từ URL
+    private void setImage(ImageView avt, String userId, Context context) {
+        if (userId.contains(",") || userId.startsWith("GROUP_")) {
+            // Nếu là nhóm chat, lấy dữ liệu từ Realtime Database
+            DatabaseReference dbRef = FirebaseDatabase.getInstance().getReference("chatRooms").child(userId);
+            dbRef.addListenerForSingleValueEvent(new ValueEventListener() {
+                @Override
+                public void onDataChange(@NonNull DataSnapshot snapshot) {
+                    if (snapshot.exists()) {
+                        String imageUrl = snapshot.child("groupImage").getValue(String.class);
+                        if (imageUrl != null && !imageUrl.isEmpty()) {
                             Glide.with(context)
                                     .load(imageUrl)
                                     .placeholder(R.drawable.default_avatar)
-                                    .into(imageView);
+                                    .into(avt);
                         } else {
-                            imageView.setImageResource(R.drawable.default_avatar); // Hình mặc định
+                            avt.setImageResource(R.drawable.default_avatar);
                         }
                     } else {
-                        imageView.setImageResource(R.drawable.default_avatar); // Hình mặc định
-                        Log.d("FriendRequest", "Lỗi khi lấy dữ liệu Firestore");
+                        avt.setImageResource(R.drawable.default_avatar);
+                        Log.d("setImage", "Group chat document not found.");
                     }
-                })
-                .addOnFailureListener(e -> {
-                    imageView.setImageResource(R.drawable.default_avatar); // Hình mặc định
-                    Log.d("FriendRequest", "Lỗi khi lấy dữ liệu Firestore", e);
-                });
+                }
+
+                @Override
+                public void onCancelled(@NonNull DatabaseError error) {
+                    avt.setImageResource(R.drawable.default_avatar);
+                    Log.e("setImage", "Error fetching group chat data", error.toException());
+                }
+            });
+        } else {
+            // Nếu là người dùng, lấy dữ liệu từ Firestore
+            FirebaseFirestore db = FirebaseFirestore.getInstance();
+            DocumentReference userDoc = db.collection("users").document(userId);
+            userDoc.get()
+                    .addOnCompleteListener(task -> {
+                        if (task.isSuccessful() && task.getResult() != null) {
+                            String imageUrl = task.getResult().getString("image");
+                            if (imageUrl != null && !imageUrl.isEmpty()) {
+                                Glide.with(context)
+                                        .load(imageUrl)
+                                        .placeholder(R.drawable.default_avatar)
+                                        .into(avt);
+                            } else {
+                                avt.setImageResource(R.drawable.default_avatar);
+                            }
+                        } else {
+                            avt.setImageResource(R.drawable.default_avatar);
+                            Log.d("setImage", "Failed to fetch user document.");
+                        }
+                    })
+                    .addOnFailureListener(e -> {
+                        avt.setImageResource(R.drawable.default_avatar);
+                        Log.e("setImage", "Error fetching user document", e);
+                    });
+        }
     }
 
 

@@ -49,8 +49,8 @@ public class SearchUser extends AppCompatActivity implements UserListener {
         searchUserAdapter = new SearchUserAdapter(userList, this);
         recyclerView.setAdapter(searchUserAdapter);
 
-        btnBack = findViewById(R.id.btnBack);
-        setListeners();
+//        btnBack = findViewById(R.id.btnBack);
+//        setListeners();
 
         database = FirebaseFirestore.getInstance();
 

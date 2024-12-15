@@ -42,8 +42,8 @@ public class UserActivity extends AppCompatActivity implements UserListener{
 
         progressBar = findViewById(R.id.progressBar);
         usersRecyclerView = findViewById(R.id.usersRecyclerView);
-        imageBack=findViewById(R.id.btnBack);
-        setListeners();
+//        imageBack=findViewById(R.id.btnBack);
+        //setListeners();
         getUser();
         btncreategr=findViewById(R.id.btncreategr);
         btnfriend = findViewById(R.id.btnfriend);

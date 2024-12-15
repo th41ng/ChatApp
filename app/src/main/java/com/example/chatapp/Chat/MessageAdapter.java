@@ -165,9 +165,12 @@ public class MessageAdapter extends RecyclerView.Adapter<MessageAdapter.ViewHold
         TextView messageTextViewSender; // TextView cho tin nhắn gửi
         TextView messageTextViewReceiver; // TextView cho tin nhắn nhận
         TextView messagetextViewSystem;
+        TextView SenderName, ReceiverName;
         // Constructor của ViewHolder, khởi tạo các tham chiếu đến View trong item
         ViewHolder(View itemView) {
             super(itemView);
+//            SenderName = itemView.findViewById(R.id.SenderName);
+//            ReceiverName = itemView.findViewById(R.id.receiverName);
             imageViewAvtReceiver = itemView.findViewById(R.id.imageViewAvtReceiver);
             imageViewMessageSender = itemView.findViewById(R.id.imageViewMessageSender);
             imageViewMessageReceiver = itemView.findViewById(R.id.imageViewMessageReceiver);

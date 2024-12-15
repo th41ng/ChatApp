@@ -36,20 +36,6 @@
         app:layout_constraintVertical_bias="0.375" />
 
 
-    <ImageButton
-        android:id="@+id/btnBack"
-        android:layout_width="78dp"
-        android:layout_height="37dp"
-        android:layout_marginStart="16dp"
-        android:layout_marginTop="12dp"
-        android:background="@drawable/background_icon"
-        android:backgroundTint="#C0E2FF"
-        android:padding="6dp"
-        android:src="@drawable/baseline_arrow_back_24"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent"
-        app:tint="@color/white" />
-
     <TextView
         android:id="@+id/textView2"
         android:layout_width="107dp"
@@ -59,11 +45,9 @@
         android:textColor="@color/black"
         android:textSize="24sp"
         android:textStyle="bold"
-        app:layout_constraintBottom_toBottomOf="@id/btnBack"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="@id/btnBack"
-        app:layout_constraintVertical_bias="0.2" />
+        tools:layout_editor_absoluteY="13dp" />
 
     <!-- Nội dung dưới ô tìm kiếm -->
 

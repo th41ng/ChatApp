@@ -80,7 +80,7 @@ public class Chats extends AppCompatActivity implements UserListener {
     private ImageButton btnBack;
     private ImageView avt;
     private ProgressDialog progressDialog;
-
+    LastMessageAdapter lastMessageAdapter;
     ArrayList<String> participantsList = new ArrayList<>();
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -97,7 +97,7 @@ public class Chats extends AppCompatActivity implements UserListener {
         infoChatBtn = findViewById(R.id.infoChatBtn);
         istyping = findViewById(R.id.istyping);
         btnBack = findViewById(R.id.btnBack);
-        avt= findViewById(R.id.avt);
+        avt = findViewById(R.id.avt);
         messageList = new ArrayList<>();
         MessageAdapter = new MessageAdapter(this, messageList);
         recyclerViewMessages.setLayoutManager(new LinearLayoutManager(this));
@@ -119,7 +119,9 @@ public class Chats extends AppCompatActivity implements UserListener {
 
 
         friendId = getIntent().getStringExtra("friendId");
-        Log.d("friend","friendId:"+friendId);
+        Log.d("friend", "friendId:" + friendId);
+
+
         if (friendId != null) {
             setImage(avt, friendId, this);
         } else {
@@ -176,13 +178,17 @@ public class Chats extends AppCompatActivity implements UserListener {
             Log.d("Chats", "No valid timestamp received.");
         }
         //kết thuúc nhận timestamp để cuộn tới
+
+
         // Thêm TextWatcher cho ô tin nhắn để kiểm tra trạng thái "đang gõ"
         MessageInput.addTextChangedListener(new TextWatcher() {
             private Handler handler = new Handler();
             private Runnable stopTyping = () -> setTypingStatus(false);
+
             @Override
             public void beforeTextChanged(CharSequence s, int start, int count, int after) {
             }
+
             @Override
             public void onTextChanged(CharSequence s, int start, int before, int count) {
                 // Kiểm tra nếu ô tin nhắn không trống thì gọi setTypingStatus(true)
@@ -193,28 +199,53 @@ public class Chats extends AppCompatActivity implements UserListener {
                     setTypingStatus(false); // Nếu ô tin nhắn trống thì dừng trạng thái "đang gõ"
                 }
             }
+
             @Override
             public void afterTextChanged(Editable s) {
             }
         });
         listenForTypingStatus();
-        //kết thúc TextWatcher cho ô tin nhắn để kiểm tra trạng thái "đang gõ"
     }
 
-    private void setImage(ImageView avt, String userId, Context context) {
-        if (userId == null || userId.isEmpty()) {
-            Log.e("setImage", "Invalid userId provided.");
-            avt.setImageResource(R.drawable.default_avatar);
-            return;
-        }
 
+private void setImage(ImageView avt, String userId, Context context) {
+    if (friendId.contains(",") || friendId.startsWith("GROUP_")) {
+        // Nếu là nhóm chat, lấy dữ liệu từ Realtime Database
+        DatabaseReference dbRef = FirebaseDatabase.getInstance().getReference("chatRooms").child(userId);
+        dbRef.addListenerForSingleValueEvent(new ValueEventListener() {
+            @Override
+            public void onDataChange(@NonNull DataSnapshot snapshot) {
+                if (snapshot.exists()) {
+                    String imageUrl = snapshot.child("groupImage").getValue(String.class);
+                    if (imageUrl != null && !imageUrl.isEmpty()) {
+                        Glide.with(context)
+                                .load(imageUrl)
+                                .placeholder(R.drawable.default_avatar)
+                                .into(avt);
+                    } else {
+                        avt.setImageResource(R.drawable.default_avatar);
+                    }
+                } else {
+                    avt.setImageResource(R.drawable.default_avatar);
+                    Log.d("setImage", "Group chat document not found.");
+                }
+            }
+
+            @Override
+            public void onCancelled(@NonNull DatabaseError error) {
+                avt.setImageResource(R.drawable.default_avatar);
+                Log.e("setImage", "Error fetching group chat data", error.toException());
+            }
+        });
+    } else {
+        // Nếu là người dùng, lấy dữ liệu từ Firestore
         FirebaseFirestore db = FirebaseFirestore.getInstance();
         DocumentReference userDoc = db.collection("users").document(userId);
         userDoc.get()
                 .addOnCompleteListener(task -> {
                     if (task.isSuccessful() && task.getResult() != null) {
                         String imageUrl = task.getResult().getString("image");
-                        if (imageUrl != null) {
+                        if (imageUrl != null && !imageUrl.isEmpty()) {
                             Glide.with(context)
                                     .load(imageUrl)
                                     .placeholder(R.drawable.default_avatar)
@@ -229,10 +260,10 @@ public class Chats extends AppCompatActivity implements UserListener {
                 })
                 .addOnFailureListener(e -> {
                     avt.setImageResource(R.drawable.default_avatar);
-                    Log.d("setImage", "Error fetching user document", e);
+                    Log.e("setImage", "Error fetching user document", e);
                 });
     }
-
+}
 
     private void createOrGetChatRoom() {
         if (friendId.contains(",") || friendId.startsWith("GROUP_")) {
@@ -256,7 +287,7 @@ public class Chats extends AppCompatActivity implements UserListener {
                         // Tạo nhóm chat mới
                         Map<String, Object> chatRoomInfo = new HashMap<>();
                         chatRoomInfo.put("groupName", friendName); // Tên nhóm chat mặc định
-                        chatRoomInfo.put("timestamp", System.currentTimeMillis());
+                        //chatRoomInfo.put("timestamp", System.currentTimeMillis());
                         chatRoomInfo.put("chatRoomOwner", currentUserId);
                         // Danh sách người tham gia nhóm
                         String[] participantsArray = friendId.split(",");
@@ -298,7 +329,6 @@ public class Chats extends AppCompatActivity implements UserListener {
                         Map<String, Object> chatRoomInfo = new HashMap<>();
                         chatRoomInfo.put("user1", currentUserId);
                         chatRoomInfo.put("user2", friendId);
-                        chatRoomInfo.put("timestamp", System.currentTimeMillis());
                         chatRoomRef.setValue(chatRoomInfo).addOnCompleteListener(task -> {
                             if (task.isSuccessful()) {
                                 loadMessages(chatRoomId);
@@ -414,7 +444,7 @@ public class Chats extends AppCompatActivity implements UserListener {
             public void onProgress(String requestId, long bytes, long totalBytes) {}
             @Override
             public void onSuccess(String requestId, Map resultData) {
-
+                progressDialog.dismiss();
                 String imageUrl = (String) resultData.get("secure_url"); // Get the uploaded image URL (https)
                 listener.onImageUploaded(imageUrl); // Callback with the image URL
             }
@@ -430,6 +460,8 @@ public class Chats extends AppCompatActivity implements UserListener {
     private void sendMessageToDatabase(DatabaseReference messagesRef, Map<String, Object> message) {
         messagesRef.push().setValue(message).addOnCompleteListener(task -> {
             if (task.isSuccessful()) {
+
+
                 Toast.makeText(this, "Message sent successfully!", Toast.LENGTH_SHORT).show();
             } else {
                 Toast.makeText(this, "Error sending message: " + task.getException().getMessage(), Toast.LENGTH_SHORT).show();
@@ -485,27 +517,40 @@ public class Chats extends AppCompatActivity implements UserListener {
         DatabaseReference typingStatusRef = FirebaseDatabase.getInstance()
                 .getReference("chatRooms")
                 .child(chatRoomId)
-                .child("typingStatus")
-                .child(friendId);
+                .child("typingStatus");
+
         typingStatusRef.addValueEventListener(new ValueEventListener() {
             @Override
             public void onDataChange(@NonNull DataSnapshot snapshot) {
-                Boolean isTyping = snapshot.getValue(Boolean.class);
-                if (isTyping != null && isTyping) {
-                    istyping.setVisibility(View.VISIBLE);
+                boolean anyUserTyping = false;
+
+                for (DataSnapshot userSnapshot : snapshot.getChildren()) {
+                    Boolean isTyping = userSnapshot.getValue(Boolean.class);
+
+                    // Kiểm tra nếu đây là người khác đang nhập, không phải bạn
+                    if (isTyping != null && isTyping && !userSnapshot.getKey().equals(currentUserId)) {
+                        anyUserTyping = true;
+                        break;
+                    }
                 }
-                else {
+
+                // Nếu bất kỳ người dùng nào (không phải chính bạn) đang nhập, hiển thị thông báo
+                if (anyUserTyping) {
+                    istyping.setVisibility(View.VISIBLE);
+                } else {
                     istyping.setVisibility(View.GONE);
                 }
             }
+
             @Override
             public void onCancelled(@NonNull DatabaseError error) {
                 Log.e("Chats", "Error listening for typing status: " + error.getMessage());
             }
         });
     }
-//kết thúc kiểm tra trạng thái đang nhập
 
+
+    //kết thúc kiểm tra trạng thái đang nhập
     @Override
     protected void onDestroy() {
         super.onDestroy();
@@ -530,6 +575,7 @@ public class Chats extends AppCompatActivity implements UserListener {
             @Override
             public void onDataChange(@NonNull DataSnapshot snapshot) {
                 String status = snapshot.getValue(String.class);
+
                 if(friendId.startsWith("GROUP_") || friendId.contains(",")){
                     onl.setText("");
                 }else{

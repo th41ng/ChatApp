@@ -81,6 +81,7 @@ public class ChatUserMain extends AppCompatActivity  {
     protected void onResume() {
         super.onResume();
             fetchMessages();
+
     }
 
 

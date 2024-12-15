@@ -87,8 +87,8 @@
 
     <com.google.android.material.appbar.MaterialToolbar
         android:id="@+id/materialToolbar7"
-        android:layout_width="395dp"
-        android:layout_height="643dp"
+        android:layout_width="397dp"
+        android:layout_height="541dp"
         android:layout_marginBottom="16dp"
         android:background="@drawable/border"
         android:minHeight="?attr/actionBarSize"
@@ -99,8 +99,8 @@
 
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/all_fr"
-        android:layout_width="394dp"
-        android:layout_height="681dp"
+        android:layout_width="397dp"
+        android:layout_height="637dp"
         app:layout_constraintBottom_toBottomOf="@+id/materialToolbar7"
         app:layout_constraintEnd_toEndOf="@+id/materialToolbar7"
         app:layout_constraintHorizontal_bias="1.0"
@@ -114,9 +114,20 @@
         android:layout_height="wrap_content"
         android:layout_marginStart="64dp"
         android:layout_marginTop="16dp"
-        android:text="Nhập tên nhóm"
+        android:text="Tên và ảnh nhóm"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/materialToolbar4" />
+
+    <ImageButton
+        android:id="@+id/groupAvt"
+        android:layout_width="47dp"
+        android:layout_height="49dp"
+        android:layout_marginStart="172dp"
+        android:layout_marginTop="36dp"
+        android:scaleType="centerCrop"
+        app:layout_constraintStart_toStartOf="@+id/groupname"
+        app:layout_constraintTop_toBottomOf="@+id/materialToolbar4"
+        app:srcCompat="@drawable/image" />
 
     <!-- ProgressBar -->
 
