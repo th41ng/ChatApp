@@ -61,6 +61,7 @@ public class AdminMain extends AppCompatActivity implements UserListener{
             Intent intent=new Intent(getApplicationContext(), AdminRequestView.class);
             startActivity(intent);
         });
+//        usersRecyclerView.setVerticalScrollBarEnabled(true);
 
         // Lắng nghe khi người dùng nhập vào ô tìm kiếm
         searchEditText.addTextChangedListener(new TextWatcher() {
