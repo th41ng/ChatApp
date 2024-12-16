@@ -230,6 +230,11 @@ public class ChangeProfile extends AppCompatActivity {
         userDoc.update(updates).addOnCompleteListener(updateTask -> {
             if (updateTask.isSuccessful()) {
                 Toast.makeText(this, "Cập nhật ảnh đại diện và thông tin thành công!", Toast.LENGTH_SHORT).show();
+                Toast.makeText(this, "Thông tin đã được cập nhật và hãy đăng nhập lại!", Toast.LENGTH_SHORT).show();
+                Intent intent = new Intent(this, LoginActivity.class);
+                intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
+                startActivity(intent);
+                finish(); // Đóng MainActivity
             } else {
                 Toast.makeText(this, "Cập nhật ảnh đại diện thất bại!", Toast.LENGTH_SHORT).show();
             }
