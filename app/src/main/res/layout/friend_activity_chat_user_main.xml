@@ -68,7 +68,6 @@
         android:backgroundTint="@android:color/transparent"
         app:layout_constraintTop_toTopOf="parent"
         app:srcCompat="@drawable/baseline_logout_24" />
-
     <ImageButton
         android:id="@+id/friendrequest"
         android:layout_width="59dp"
@@ -83,6 +82,20 @@
         app:layout_constraintTop_toTopOf="parent"
         app:srcCompat="@drawable/bell"
         app:tint="@color/black" />
+    <TextView
+        android:id="@+id/txtSoRequest"
+        android:layout_width="25dp"
+        android:layout_height="25dp"
+        android:layout_gravity="end|top"
+        android:layout_marginEnd="5dp"
+        android:layout_marginTop="5dp"
+        android:background="@drawable/request_background"
+        android:gravity="center"
+        android:text="0"
+        android:textColor="@android:color/white"
+        android:textSize="10sp"
+        app:layout_constraintTop_toTopOf="@id/friendrequest"
+        app:layout_constraintEnd_toEndOf="@id/friendrequest"/>
 
     <!-- Bottom Navigation -->
 
@@ -96,7 +109,8 @@
         app:layout_constraintHorizontal_bias="0.0"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/materialToolbar5"
-        app:layout_constraintVertical_bias="0.0" />
+        app:layout_constraintVertical_bias="0.0"
+        android:visibility="gone"/>
 
     <LinearLayout
         android:id="@+id/linearLayout"

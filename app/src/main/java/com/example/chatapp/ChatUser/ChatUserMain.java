@@ -9,6 +9,7 @@ import android.os.Bundle;
 import android.util.Base64;
 import android.util.Log;
 
+import android.view.View;
 import android.widget.ImageButton;
 
 import android.widget.ImageView;
@@ -48,6 +49,7 @@ public class ChatUserMain extends AppCompatActivity  {
     ImageButton btnSignout;
     ImageButton btnfriend,btnfindfriend;
     ImageButton btnhome;
+    TextView txtSoRequest;
     private RecyclerView recyclerViewChats;
     private LastMessageAdapter lastMessageAdapter;
     private List<Message> messageList;
@@ -263,6 +265,8 @@ public class ChatUserMain extends AppCompatActivity  {
 
 
     private void setListeners() {
+        txtSoRequest=findViewById(R.id.txtSoRequest);
+        soRequest();
         btnSignout = findViewById(R.id.btnSignout);
         btnSignout.setOnClickListener(view -> signOut());
         btnfriend=findViewById(R.id.btnfriend);
@@ -341,7 +345,23 @@ public class ChatUserMain extends AppCompatActivity  {
         startActivity(intent);
         finish();
     }
+    private void soRequest(){
+        FirebaseFirestore database = FirebaseFirestore.getInstance();
+        database.collection("friend_requests")
+                .document(currentUserID) // ID của người hiện tại
+                .collection("received")
+                .whereEqualTo("status", "received") // Chỉ lọc những tài liệu có status là "received"
+                .get()
+                .addOnCompleteListener(task -> {
+                    if (task.isSuccessful()) {
+                        // Lấy số lượng tài liệu trong kết quả truy vấn
+                        int friendRequestCount = task.getResult().size();
+                        // Ví dụ: Hiển thị số lượng lời mời kết bạn lên giao diện
+                        txtSoRequest.setText(String.valueOf(friendRequestCount));
+                    }
+                });
 
+    }
 
     private void showToast(String message) {
         Toast.makeText(getApplicationContext(), message, Toast.LENGTH_SHORT).show();
