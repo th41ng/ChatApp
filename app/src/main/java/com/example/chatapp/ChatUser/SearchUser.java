@@ -180,8 +180,6 @@ public class SearchUser extends AppCompatActivity implements UserListener {
 
                             recyclerView.setAdapter(searchUserAdapter);
                             recyclerView.setVisibility(View.VISIBLE);
-                        } else {
-                            showErrorMessage("Không tìm thấy người dùng");
                         }
                     } else {
                         showErrorMessage("Lỗi tìm kiếm: " + task.getException().getMessage());
