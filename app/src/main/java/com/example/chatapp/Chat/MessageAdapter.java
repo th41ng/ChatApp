@@ -10,9 +10,12 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
 import android.widget.TextView;
+
 import com.bumptech.glide.Glide;
+
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
+
 import com.example.chatapp.R;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.firestore.DocumentReference;
@@ -74,6 +77,18 @@ public class MessageAdapter extends RecyclerView.Adapter<MessageAdapter.ViewHold
                 ? FirebaseAuth.getInstance().getCurrentUser().getUid()
                 : null;
         String senderId = message.getSenderId(); // Lấy ID người gửi tin nhắn
+        // Ẩn tên người gửi nếu là tin nhắn của chính người dùng hiện tại
+        if (senderId != null && senderId.equals(currentUserId)) {
+            holder.senderName.setVisibility(View.GONE); // Ẩn TextView tên người gửi
+        } else {
+            // Hiển thị tên người gửi nếu tin nhắn trước đó là từ người khác
+            if (position == 0 || !messageList.get(position - 1).getSenderId().equals(senderId)) {
+                getUserName(senderId, holder.senderName); // Lấy tên người gửi
+                holder.senderName.setVisibility(View.VISIBLE);
+            } else {
+                holder.senderName.setVisibility(View.GONE); // Ẩn nếu tin nhắn liên tiếp từ cùng người
+            }
+        }
 
         // Highlight tin nhắn nếu là tin nhắn tại vị trí được highlight
         if (position == highlightedPosition) {
@@ -143,8 +158,21 @@ public class MessageAdapter extends RecyclerView.Adapter<MessageAdapter.ViewHold
                 }
             }
         }
+    }
+
+    private void getUserName(String userId, TextView nameTextView) {
+        FirebaseFirestore database = FirebaseFirestore.getInstance();
+        database.collection("users").document(userId)
+                .get()
+                .addOnSuccessListener(documentSnapshot -> {
+                    if (documentSnapshot.exists()) {
+                        String name = documentSnapshot.getString("name");
+                        nameTextView.setText(name);
+                    }
+                });
 
     }
+
     // Trả về số lượng tin nhắn trong danh sách
     @Override
     public int getItemCount() {
@@ -165,20 +193,21 @@ public class MessageAdapter extends RecyclerView.Adapter<MessageAdapter.ViewHold
         TextView messageTextViewSender; // TextView cho tin nhắn gửi
         TextView messageTextViewReceiver; // TextView cho tin nhắn nhận
         TextView messagetextViewSystem;
-        TextView SenderName, ReceiverName;
+        TextView senderName;
+
         // Constructor của ViewHolder, khởi tạo các tham chiếu đến View trong item
         ViewHolder(View itemView) {
             super(itemView);
-//            SenderName = itemView.findViewById(R.id.SenderName);
-//            ReceiverName = itemView.findViewById(R.id.receiverName);
+            senderName = itemView.findViewById(R.id.senderName);
             imageViewAvtReceiver = itemView.findViewById(R.id.imageViewAvtReceiver);
             imageViewMessageSender = itemView.findViewById(R.id.imageViewMessageSender);
             imageViewMessageReceiver = itemView.findViewById(R.id.imageViewMessageReceiver);
             messageTextViewSender = itemView.findViewById(R.id.messageTextViewSender);
             messageTextViewReceiver = itemView.findViewById(R.id.messageTextViewReceiver);
-            messagetextViewSystem= itemView.findViewById(R.id.messagetextViewSystem);
+            messagetextViewSystem = itemView.findViewById(R.id.messagetextViewSystem);
         }
     }
+
     private void setImage(ImageView imageView, String userId, Context context) {
         FirebaseFirestore db = FirebaseFirestore.getInstance();
         DocumentReference userDoc = db.collection("users").document(userId);

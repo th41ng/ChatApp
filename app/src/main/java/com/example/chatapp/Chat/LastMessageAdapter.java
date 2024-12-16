@@ -104,9 +104,12 @@ public class LastMessageAdapter extends RecyclerView.Adapter<LastMessageAdapter.
                 // Xử lý trạng thái người dùng
                 if ("online".equals(status)) {
                     holder.viewStatus.setBackgroundResource(R.drawable.status_online_circle); // Hình tròn xanh
-                } else {
+                    holder.viewStatus.setVisibility(View.VISIBLE);
+                } else if("offline".equals(status)){
                     holder.viewStatus.setBackgroundResource(R.drawable.status_offline_circle); // Hình tròn xám
+                    holder.viewStatus.setVisibility(View.VISIBLE);
                 }
+                else holder.viewStatus.setVisibility(View.INVISIBLE);
             }
 
             @Override

@@ -87,7 +87,6 @@ public class ChatUserMain extends AppCompatActivity  {
 
     }
 
-
     private void initializeUI() {
         name = findViewById(R.id.textName);
         image = findViewById(R.id.imageButton);
@@ -106,7 +105,6 @@ public class ChatUserMain extends AppCompatActivity  {
     }
 
     private void loadUserDetails() {
-
         name.setText(userName != null ? userName : "User");
         if (encodedImage != null && !encodedImage.isEmpty()) {
             Glide.with(this)
@@ -262,8 +260,6 @@ public class ChatUserMain extends AppCompatActivity  {
             }
         });
     }
-
-
     private void setListeners() {
         txtSoRequest=findViewById(R.id.txtSoRequest);
         soRequest();
