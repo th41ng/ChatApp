@@ -34,8 +34,6 @@ public class SearchUser extends AppCompatActivity implements UserListener {
     private ProgressBar progressBar;
     private FirebaseFirestore database;
     private final List<User> userList = new ArrayList<>();
-    private ImageButton btnBack;
-
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -49,8 +47,6 @@ public class SearchUser extends AppCompatActivity implements UserListener {
         searchUserAdapter = new SearchUserAdapter(userList, this);
         recyclerView.setAdapter(searchUserAdapter);
 
-//        btnBack = findViewById(R.id.btnBack);
-//        setListeners();
 
         database = FirebaseFirestore.getInstance();
 
@@ -133,9 +129,6 @@ public class SearchUser extends AppCompatActivity implements UserListener {
         }
     }
 
-    private void setListeners() {
-        btnBack.setOnClickListener(view -> getOnBackPressedDispatcher().onBackPressed());
-    }
 
     private void searchUsers() {
         loading(true);

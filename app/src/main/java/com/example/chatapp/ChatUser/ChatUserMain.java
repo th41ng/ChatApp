@@ -39,6 +39,7 @@ import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.messaging.FirebaseMessaging;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 public class ChatUserMain extends AppCompatActivity  {
@@ -194,6 +195,7 @@ public class ChatUserMain extends AppCompatActivity  {
                                         messageList.add(lastMessage); // Add the last message
                                     }
 
+                                    Collections.sort(messageList, (m1, m2) -> Long.compare(m2.getTimestamp(), m1.getTimestamp()));
                                     lastMessageAdapter.notifyDataSetChanged();
                                     recyclerViewChats.scrollToPosition(messageList.size() - 1);
                                 }
@@ -243,6 +245,7 @@ public class ChatUserMain extends AppCompatActivity  {
                                     messageList.add(lastMessage); // Add the last message for the group
                                 }
 
+                                Collections.sort(messageList, (m1, m2) -> Long.compare(m2.getTimestamp(), m1.getTimestamp()));
                                 lastMessageAdapter.notifyDataSetChanged();
                                 recyclerViewChats.scrollToPosition(messageList.size() - 1);
                             }

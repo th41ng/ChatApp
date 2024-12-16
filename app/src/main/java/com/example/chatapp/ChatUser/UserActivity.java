@@ -33,7 +33,6 @@ public class UserActivity extends AppCompatActivity implements UserListener{
     private ProgressBar progressBar;
     private RecyclerView usersRecyclerView;
     private ImageButton btncreategr;
-    private ImageView imageBack;
     private ImageButton btnhome, btnfriend, btnfindfriend;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -42,8 +41,6 @@ public class UserActivity extends AppCompatActivity implements UserListener{
 
         progressBar = findViewById(R.id.progressBar);
         usersRecyclerView = findViewById(R.id.usersRecyclerView);
-//        imageBack=findViewById(R.id.btnBack);
-        //setListeners();
         getUser();
         btncreategr=findViewById(R.id.btncreategr);
         btnfriend = findViewById(R.id.btnfriend);
@@ -92,12 +89,6 @@ public class UserActivity extends AppCompatActivity implements UserListener{
             intent.putExtra("userId",currentUserID);
             startActivity(intent);
         });
-    }
-
-
-
-    private void setListeners(){
-        imageBack.setOnClickListener(view-> getOnBackPressedDispatcher().onBackPressed());
     }
     private void loading(Boolean isLoading) {
         if (isLoading) {

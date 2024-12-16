@@ -46,9 +46,6 @@ public class LastMessageAdapter extends RecyclerView.Adapter<LastMessageAdapter.
 
     }
 
-
-
-
     @NonNull
     @Override
     public LastMessageAdapter.ViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
