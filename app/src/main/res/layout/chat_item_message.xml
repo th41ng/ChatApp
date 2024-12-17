@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
-<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<androidx.constraintlayout.widget.ConstraintLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
@@ -7,9 +8,7 @@
     android:layout_margin="3dp">
 
     <!-- Layout for Sender's Text Message -->
-
     <!-- Layout for Receiver's Text Message -->
-
     <!-- ImageView for Sender's Image Message -->
 
     <!-- Tên người nhận -->
@@ -17,12 +16,12 @@
         android:id="@+id/senderName"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:visibility="gone"
-        android:textSize="12sp"
+        android:layout_marginStart="8dp"
         android:textColor="@android:color/darker_gray"
+        android:textSize="12sp"
+        android:visibility="visible"
         app:layout_constraintStart_toEndOf="@+id/imageViewAvtReceiver"
-        app:layout_constraintTop_toTopOf="@+id/imageViewAvtReceiver"
-        android:layout_marginStart="8dp" />
+        app:layout_constraintTop_toTopOf="@+id/imageViewAvtReceiver" />
 
     <TextView
         android:id="@+id/messageTextViewSender"
@@ -38,7 +37,6 @@
         app:layout_constraintVertical_bias="1.0" />
 
     <!-- ImageView for Receiver's Image Message -->
-
     <TextView
         android:id="@+id/messageTextViewReceiver"
         android:layout_width="wrap_content"
@@ -49,8 +47,7 @@
         android:textColor="@android:color/black"
         android:visibility="gone"
         app:layout_constraintStart_toEndOf="@+id/imageViewAvtReceiver"
-        app:layout_constraintTop_toBottomOf="@+id/senderName"
-        app:layout_constraintVertical_bias="1.0" />
+        app:layout_constraintTop_toBottomOf="@+id/senderName" />
 
     <ImageView
         android:id="@+id/imageViewMessageSender"
@@ -66,22 +63,24 @@
         android:id="@+id/imageViewMessageReceiver"
         android:layout_width="196dp"
         android:layout_height="205dp"
+        android:layout_marginStart="28dp"
         android:visibility="gone"
         app:layout_constraintStart_toStartOf="@+id/imageViewAvtReceiver"
+        app:layout_constraintTop_toBottomOf="@+id/senderName"
         tools:ignore="MissingConstraints" />
 
     <com.google.android.material.imageview.ShapeableImageView
         android:id="@+id/imageViewAvtReceiver"
         android:layout_width="40dp"
         android:layout_height="40dp"
-        android:scaleType="centerCrop"
-        android:visibility="visible"
-        app:shapeAppearanceOverlay="@style/RoundedShape"
-        app:srcCompat="@drawable/default_avatar"
         android:layout_marginStart="10dp"
         android:layout_marginTop="5dp"
+        android:scaleType="centerCrop"
+        android:visibility="gone"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent" />
+        app:layout_constraintTop_toTopOf="parent"
+        app:shapeAppearanceOverlay="@style/RoundedShape"
+        app:srcCompat="@drawable/default_avatar" />
 
     <TextView
         android:id="@+id/messagetextViewSystem"
@@ -92,6 +91,4 @@
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
-
 </androidx.constraintlayout.widget.ConstraintLayout>
-

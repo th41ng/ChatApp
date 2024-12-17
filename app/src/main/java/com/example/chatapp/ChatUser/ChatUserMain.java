@@ -271,7 +271,7 @@ public class ChatUserMain extends AppCompatActivity  {
     private boolean isMessageDuplicated(Message message) {
         for (Message m : messageList) {
             // Kiểm tra nếu tin nhắn có ID và nội dung giống nhau
-            if (m.getSenderId() != null &&
+            if (m.getSenderId() != null && m.getContent()!=null &&
                     m.getSenderId().equals(message.getSenderId()) &&
                     m.getContent().equals(message.getContent()) &&
                     m.getTimestamp() == message.getTimestamp()) {  // So sánh timestamp bằng toán tử '=='
@@ -358,6 +358,7 @@ public class ChatUserMain extends AppCompatActivity  {
 
         // Lắng nghe sự kiện khi mất kết nối
         userStatusRef.setValue("offline");
+        Toast.makeText(this,"Đăng xuất thành công",Toast.LENGTH_LONG).show();
 
         // Chuyển về màn hình đăng nhập
         Intent intent = new Intent(getApplicationContext(), LoginActivity.class);
