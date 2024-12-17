@@ -9,7 +9,10 @@ import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 import com.example.chatapp.R;
 
+import java.text.SimpleDateFormat;
+import java.util.Date;
 import java.util.List;
+import java.util.Locale;
 
 import models.Message;
 //Adapter để tìm kiếm thông tin
@@ -38,7 +41,8 @@ public class SearchResultsAdapter extends RecyclerView.Adapter<SearchResultsAdap
     public void onBindViewHolder(@NonNull ViewHolder holder, int position) {
         Message message = searchResults.get(position);
         holder.messageContent.setText(message.getContent());  // Bind content
-        holder.messageTimestamp.setText(String.valueOf(message.getTimestamp()));  // Optionally bind timestamp
+        String formattedTimestamp = formatTimestamp(message.getTimestamp());
+        holder.messageTimestamp.setText(formattedTimestamp);  // Optionally bind timestamp
 
         // Log binding process
         Log.d("SearchResultsAdapter", "Binding message: " + message.getContent());
@@ -70,4 +74,13 @@ public class SearchResultsAdapter extends RecyclerView.Adapter<SearchResultsAdap
     public interface OnItemClickListener {
         void onItemClick(Message message);
     }
+    private String formatTimestamp(long timestamp) {
+        // Create an instance of SimpleDateFormat for formatting the timestamp
+        SimpleDateFormat sdf = new SimpleDateFormat("HH:mm:ss", Locale.getDefault());
+        // Convert the timestamp (milliseconds) into a Date object
+        Date date = new Date(timestamp);
+        // Format the Date object to a readable string
+        return sdf.format(date);
+    }
+
 }

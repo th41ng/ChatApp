@@ -15,8 +15,12 @@ import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
+
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
+import java.util.Locale;
 
 import models.Message;
 
@@ -37,8 +41,6 @@ public class searchInChat extends AppCompatActivity {
             Toast.makeText(this, "Chat room ID not found", Toast.LENGTH_SHORT).show();
             finish();
             return;
-        }else {
-            Toast.makeText(this, "Chat room ID:"+chatRoomId, Toast.LENGTH_SHORT).show();
         }
         // Khởi tạo Firebase reference cho tin nhắn
         messagesRef = FirebaseDatabase.getInstance().getReference("chatRooms").child(chatRoomId).child("messages");
@@ -67,7 +69,8 @@ public class searchInChat extends AppCompatActivity {
         searchResultsRecyclerView.setAdapter(searchResultsAdapter);  // Gán adapter
         // Xử lý khi người dùng chọn tin nhắn
         searchResultsAdapter.setOnItemClickListener(message -> {
-            // Inside your onItemClickListener or wherever you set the timestamp
+
+
             messageTimestamp = message.getTimestamp();
             Log.d("searchInChat", "Sending timestamp: " + messageTimestamp);
             Intent intent = new Intent(searchInChat.this, Chats.class);
@@ -113,4 +116,6 @@ public class searchInChat extends AppCompatActivity {
                     }
                 });
     }
+
+
 }

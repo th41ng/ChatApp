@@ -37,8 +37,6 @@ public class InfoChat extends AppCompatActivity {
             Toast.makeText(this, "Chat room ID not found", Toast.LENGTH_SHORT).show();
             finish();
             return;
-        }else {
-            Toast.makeText(this, "Chat room ID:"+chatRoomId, Toast.LENGTH_SHORT).show();
         }
         // Khởi tạo Firebase reference cho tin nhắn
         messagesRef = FirebaseDatabase.getInstance().getReference("chatRooms").child(chatRoomId).child("messages");

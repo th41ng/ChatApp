@@ -87,23 +87,23 @@
 
     <com.google.android.material.appbar.MaterialToolbar
         android:id="@+id/materialToolbar7"
-        android:layout_width="397dp"
-        android:layout_height="541dp"
-        android:layout_marginBottom="16dp"
+        android:layout_width="404dp"
+        android:layout_height="581dp"
+        android:layout_marginTop="60dp"
         android:background="@drawable/border"
         android:minHeight="?attr/actionBarSize"
         android:theme="?attr/actionBarTheme"
-        app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent" />
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/groupname" />
 
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/all_fr"
         android:layout_width="397dp"
-        android:layout_height="637dp"
+        android:layout_height="572dp"
         app:layout_constraintBottom_toBottomOf="@+id/materialToolbar7"
         app:layout_constraintEnd_toEndOf="@+id/materialToolbar7"
-        app:layout_constraintHorizontal_bias="1.0"
+        app:layout_constraintHorizontal_bias="0.437"
         app:layout_constraintStart_toStartOf="@+id/materialToolbar7"
         app:layout_constraintTop_toTopOf="@+id/materialToolbar7"
         app:layout_constraintVertical_bias="0.0" />
@@ -112,7 +112,7 @@
         android:id="@+id/groupname"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginStart="64dp"
+        android:layout_marginStart="48dp"
         android:layout_marginTop="16dp"
         android:text="Tên và ảnh nhóm"
         app:layout_constraintStart_toStartOf="parent"
@@ -122,7 +122,7 @@
         android:id="@+id/groupAvt"
         android:layout_width="47dp"
         android:layout_height="49dp"
-        android:layout_marginStart="172dp"
+        android:layout_marginStart="188dp"
         android:layout_marginTop="36dp"
         android:scaleType="centerCrop"
         app:layout_constraintStart_toStartOf="@+id/groupname"

@@ -88,7 +88,7 @@ public class groupChat extends AppCompatActivity {
         if (groupAvt != null) {
             Glide.with(this)
                     .load(groupAvt)
-                    .placeholder(R.drawable.default_avatar)
+                    .placeholder(R.drawable.friend)
                     .into(groupAvt);
         } else {
             groupAvt.setImageResource(R.drawable.default_avatar);

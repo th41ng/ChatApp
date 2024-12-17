@@ -208,7 +208,7 @@ public class ChatUserMain extends AppCompatActivity  {
 
                             @Override
                             public void onFailure(String errorMessage) {
-                                showToast("Failed to get friend info: " + errorMessage);
+                                //showToast("Failed to get friend info: " + errorMessage);
                             }
                         });
 
@@ -271,7 +271,7 @@ public class ChatUserMain extends AppCompatActivity  {
     private boolean isMessageDuplicated(Message message) {
         for (Message m : messageList) {
             // Kiểm tra nếu tin nhắn có ID và nội dung giống nhau
-            if (m.getSenderId() != null &&
+            if (m.getSenderId() != null && m.getContent() !=null  &&
                     m.getSenderId().equals(message.getSenderId()) &&
                     m.getContent().equals(message.getContent()) &&
                     m.getTimestamp() == message.getTimestamp()) {  // So sánh timestamp bằng toán tử '=='
