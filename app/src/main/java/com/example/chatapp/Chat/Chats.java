@@ -460,9 +460,6 @@ private void setImage(ImageView avt, String userId, Context context) {
     private void sendMessageToDatabase(DatabaseReference messagesRef, Map<String, Object> message) {
         messagesRef.push().setValue(message).addOnCompleteListener(task -> {
             if (task.isSuccessful()) {
-
-
-                Toast.makeText(this, "Message sent successfully!", Toast.LENGTH_SHORT).show();
             } else {
                 Toast.makeText(this, "Error sending message: " + task.getException().getMessage(), Toast.LENGTH_SHORT).show();
             }

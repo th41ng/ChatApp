@@ -41,7 +41,8 @@ public class UserActivity extends AppCompatActivity implements UserListener{
 
         progressBar = findViewById(R.id.progressBar);
         usersRecyclerView = findViewById(R.id.usersRecyclerView);
-        getUser();
+
+
         btncreategr=findViewById(R.id.btncreategr);
         btnfriend = findViewById(R.id.btnfriend);
         btnfindfriend = findViewById(R.id.btnfindfriend);
@@ -89,7 +90,12 @@ public class UserActivity extends AppCompatActivity implements UserListener{
             intent.putExtra("userId",currentUserID);
             startActivity(intent);
         });
+
+
+        getUser();
     }
+
+
     private void loading(Boolean isLoading) {
         if (isLoading) {
             progressBar.setVisibility(View.VISIBLE);
@@ -171,11 +177,69 @@ public class UserActivity extends AppCompatActivity implements UserListener{
                 });
     }
 
+
     @Override
     public void onBtnAddFriend(User user) {
     }
-
     @Override
     public void onBtnRemoveFriend(User user) {
+        String currentUserId = getIntent().getStringExtra("userId");
+        String targetUserId = user.getUserId();
+
+        // Remove from current user's friend list
+        FirebaseFirestore database = FirebaseFirestore.getInstance();
+        database.collection("friends")
+                .document(currentUserId)
+                .update(targetUserId, false) // Mark as not a friend (remove)
+                .addOnSuccessListener(aVoid -> {
+                    // Remove from target user's friend list
+                    database.collection("friends")
+                            .document(targetUserId)
+                            .update(currentUserId, false) // Mark as not a friend (remove)
+                            .addOnSuccessListener(aVoid2 -> {
+                                // Optionally, remove any pending friend request if exists
+                                removeFriendRequest(currentUserId, targetUserId);
+                                Toast.makeText(getApplicationContext(), "Unfriend successful!", Toast.LENGTH_SHORT).show();
+
+                                // Cập nhật danh sách bạn bè ngay tại đây mà không cần chuyển qua Activity khác
+                                // Tạo lại adapter và notify lại dữ liệu
+                                removeUserFromList(user);
+                            })
+                            .addOnFailureListener(e -> {
+                                Toast.makeText(getApplicationContext(), "Error while unfriend", Toast.LENGTH_SHORT).show();
+                            });
+                })
+                .addOnFailureListener(e -> {
+                    Toast.makeText(getApplicationContext(), "Error while unfriend", Toast.LENGTH_SHORT).show();
+                });
     }
+
+    private void removeUserFromList(User user) {
+        // Lấy danh sách bạn bè hiện tại
+        List<User> currentUserList = ((UsersAdapter) usersRecyclerView.getAdapter()).getUsersList();
+
+        // Xóa người dùng khỏi danh sách
+        currentUserList.remove(user);
+
+        // Cập nhật lại adapter với danh sách mới
+        ((UsersAdapter) usersRecyclerView.getAdapter()).notifyDataSetChanged();
+    }
+
+    // Remove pending friend request from both sides
+    private void removeFriendRequest(String currentUserId, String targetUserId) {
+        FirebaseFirestore database = FirebaseFirestore.getInstance();
+        database.collection("friend_requests")
+                .document(currentUserId)
+                .collection("sent")
+                .document(targetUserId)
+                .delete();
+
+        database.collection("friend_requests")
+                .document(targetUserId)
+                .collection("received")
+                .document(currentUserId)
+                .delete();
+    }
+
+
 }

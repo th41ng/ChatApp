@@ -5,6 +5,7 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.TextView;
 
@@ -33,20 +34,28 @@ public class UsersAdapter extends RecyclerView.Adapter<UsersAdapter.UserViewHold
         this.users = users;
         this.userListener = userListener;
     }
+
+    public List<User> getUsersList() {
+        return users;  // usersList là danh sách người dùng bạn bè hiện tại trong adapter
+    }
+
+
     public static class UserViewHolder extends RecyclerView.ViewHolder {
         TextView textName;
         TextView textEmail;
         ImageView imageProfile;
         View viewStatus;
+        ImageButton btnUnfriend;  // Declare the button here
+
         UserViewHolder(View itemView) {
             super(itemView);
             textName = itemView.findViewById(R.id.textName);
             textEmail = itemView.findViewById(R.id.textEmail);
             imageProfile = itemView.findViewById(R.id.imageProfile);
-            viewStatus=itemView.findViewById(R.id.status);
+            viewStatus = itemView.findViewById(R.id.status);
+            btnUnfriend = itemView.findViewById(R.id.btnUnfriend);  // Initialize it here
         }
     }
-
 
     @NonNull
     @Override
@@ -60,29 +69,40 @@ public class UsersAdapter extends RecyclerView.Adapter<UsersAdapter.UserViewHold
         User user = users.get(position);
         holder.textName.setText(user.getName());
         holder.textEmail.setText(user.getEmail());
-        // Tải ảnh từ Firestore và hiển thị
+
+        // Load profile image
         setImage(holder.imageProfile, user.getUserId(), holder.itemView.getContext());
 
-        holder.itemView.setOnClickListener(v -> userListener.onUserClicked(user));
-        // Thiết lập trạng thái của item (mờ và vô hiệu hóa sự kiện click nếu bị vô hiệu hóa)
-        if (Boolean.TRUE.equals(user.getDisabled())) {
-            // Thay đổi giao diện để chỉ rõ tài khoản bị vô hiệu hóa
-            holder.itemView.setAlpha(0.5f); // Làm mờ
+        // Check if the user is a friend and show "Unfriend" button if true
+        if (user.getFriendStatus().equals("friend")) {
+            holder.btnUnfriend.setVisibility(View.VISIBLE);  // Make sure the button is visible
+            holder.btnUnfriend.setOnClickListener(v -> {
+                // Trigger the unfriend action
+                userListener.onBtnRemoveFriend(user);  // Pass the clicked user to the listener
+            });
         } else {
-            holder.itemView.setAlpha(1.0f); // Hiển thị bình thường
+            holder.btnUnfriend.setVisibility(View.GONE);  // Hide if not a friend
         }
 
-        //Thể hiện trạng thái của user
+        holder.itemView.setOnClickListener(v -> userListener.onUserClicked(user));
+
+        // Set item alpha if the user is disabled
+        if (Boolean.TRUE.equals(user.getDisabled())) {
+            holder.itemView.setAlpha(0.5f); // Dim the view
+        } else {
+            holder.itemView.setAlpha(1.0f); // Regular view
+        }
+
+        // Display user's online status
         DatabaseReference usersRef = FirebaseDatabase.getInstance().getReference("users").child(user.getUserId()).child("status");
         usersRef.addValueEventListener(new ValueEventListener() {
             @Override
             public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
                 String status = dataSnapshot.getValue(String.class);
-                // Xử lý trạng thái người dùng
-                if (status!=null && status.equals("online")) {
-                    holder.viewStatus.setBackgroundResource(R.drawable.status_online_circle);// Hình tròn xanh
+                if (status != null && status.equals("online")) {
+                    holder.viewStatus.setBackgroundResource(R.drawable.status_online_circle); // Green circle for online
                 } else {
-                    holder.viewStatus.setBackgroundResource(R.drawable.status_offline_circle); // Hình tròn xám
+                    holder.viewStatus.setBackgroundResource(R.drawable.status_offline_circle); // Grey circle for offline
                 }
             }
 
@@ -92,6 +112,7 @@ public class UsersAdapter extends RecyclerView.Adapter<UsersAdapter.UserViewHold
             }
         });
     }
+
     private void setImage(ImageView imageView, String userId, Context context) {
         FirebaseFirestore db = FirebaseFirestore.getInstance();
         DocumentReference userDoc = db.collection("users").document(userId);
@@ -99,29 +120,28 @@ public class UsersAdapter extends RecyclerView.Adapter<UsersAdapter.UserViewHold
         userDoc.get()
                 .addOnCompleteListener(task -> {
                     if (task.isSuccessful() && task.getResult() != null) {
-                        String imageUrl = task.getResult().getString("image"); // Trường 'image' lưu URL ảnh
+                        String imageUrl = task.getResult().getString("image"); // Get image URL from Firestore
                         if (imageUrl != null) {
-                            // Sử dụng Glide để tải ảnh từ URL
                             Glide.with(context)
                                     .load(imageUrl)
-                                    .placeholder(R.drawable.default_avatar)
+                                    .placeholder(R.drawable.default_avatar)  // Placeholder image
                                     .into(imageView);
                         } else {
-                            imageView.setImageResource(R.drawable.default_avatar); // Hình mặc định
+                            imageView.setImageResource(R.drawable.default_avatar); // Default avatar if no image
                         }
                     } else {
-                        imageView.setImageResource(R.drawable.default_avatar); // Hình mặc định
-                        Log.d("FriendRequest", "Lỗi khi lấy dữ liệu Firestore");
+                        imageView.setImageResource(R.drawable.default_avatar); // Default avatar
+                        Log.d("FriendRequest", "Error retrieving data from Firestore");
                     }
                 })
                 .addOnFailureListener(e -> {
-                    imageView.setImageResource(R.drawable.default_avatar); // Hình mặc định
-                    Log.d("FriendRequest", "Lỗi khi lấy dữ liệu Firestore", e);
+                    imageView.setImageResource(R.drawable.default_avatar); // Default avatar on failure
+                    Log.d("FriendRequest", "Error retrieving data from Firestore", e);
                 });
     }
+
     @Override
     public int getItemCount() {
         return users.size();
     }
-
 }

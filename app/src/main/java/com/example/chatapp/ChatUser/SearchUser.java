@@ -62,6 +62,8 @@ public class SearchUser extends AppCompatActivity implements UserListener {
         String encodedImage=getIntent().getStringExtra("image");
         String email = getIntent().getStringExtra("email");
 
+
+        searchUsers();
         // Gán sự kiện click cho btnfriend
         btnfriend.setOnClickListener(v -> {
             Intent intent = new Intent(getApplicationContext(), UserActivity.class);

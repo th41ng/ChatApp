@@ -30,6 +30,7 @@ import com.example.chatapp.R;
 import com.example.chatapp.Re_Sign.LoginActivity;
 import com.example.chatapp.UserHelper;
 import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.database.ChildEventListener;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
@@ -41,7 +42,9 @@ import com.google.firebase.messaging.FirebaseMessaging;
 
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 public class ChatUserMain extends AppCompatActivity  {
     TextView name;
@@ -75,17 +78,12 @@ public class ChatUserMain extends AppCompatActivity  {
             finish(); // Kết thúc nếu không có userId
             return;
         }
-
+        fetchMessages();
         initializeUI();
         loadUserDetails();
         setListeners();
     }
-    @Override
-    protected void onResume() {
-        super.onResume();
-            fetchMessages();
 
-    }
 
     private void initializeUI() {
         name = findViewById(R.id.textName);
@@ -96,12 +94,13 @@ public class ChatUserMain extends AppCompatActivity  {
         recyclerViewChats.setLayoutManager(new LinearLayoutManager(this));
         messageList = new ArrayList<>();
         lastMessageAdapter = new LastMessageAdapter(this, messageList);
+
+
         recyclerViewChats.setAdapter(lastMessageAdapter);
 
         // Initialize Firebase Realtime Database reference
         chatReference = FirebaseDatabase.getInstance().getReference("chats");
         Log.d("test", "currentUID" + currentUserID);
-
     }
 
     private void loadUserDetails() {
@@ -143,6 +142,9 @@ public class ChatUserMain extends AppCompatActivity  {
                 });
     }
 
+
+
+
     private void fetchMessages() {
         Log.d("test", "currentUID: " + currentUserID);
         if (currentUserID == null || currentUserID.isEmpty()) {
@@ -152,11 +154,13 @@ public class ChatUserMain extends AppCompatActivity  {
 
         DatabaseReference chatRoomsRef = FirebaseDatabase.getInstance().getReference("chatRooms");
 
-        // Listen for all chat rooms
-        chatRoomsRef.addListenerForSingleValueEvent(new ValueEventListener() {
+        // Listen for changes in chat rooms
+        chatRoomsRef.addValueEventListener(new ValueEventListener() {
             @Override
             public void onDataChange(@NonNull DataSnapshot snapshot) {
+                Log.d("Messages", messageList.toString());
                 messageList.clear(); // Clear the message list before adding new data
+
 
                 for (DataSnapshot roomSnapshot : snapshot.getChildren()) {
                     String user1 = roomSnapshot.child("user1").getValue(String.class);
@@ -191,8 +195,9 @@ public class ChatUserMain extends AppCompatActivity  {
                                         }
                                     }
 
-                                    if (lastMessage != null) {
-                                        messageList.add(lastMessage); // Add the last message
+                                    // Add the last message to the list if not already present
+                                    if (lastMessage != null && !isMessageDuplicated(lastMessage)) {
+                                        messageList.add(lastMessage);
                                     }
 
                                     Collections.sort(messageList, (m1, m2) -> Long.compare(m2.getTimestamp(), m1.getTimestamp()));
@@ -241,8 +246,9 @@ public class ChatUserMain extends AppCompatActivity  {
                                     }
                                 }
 
-                                if (lastMessage != null) {
-                                    messageList.add(lastMessage); // Add the last message for the group
+                                // Add the last message for the group if not already present
+                                if (lastMessage != null && !isMessageDuplicated(lastMessage)) {
+                                    messageList.add(lastMessage);
                                 }
 
                                 Collections.sort(messageList, (m1, m2) -> Long.compare(m2.getTimestamp(), m1.getTimestamp()));
@@ -260,6 +266,23 @@ public class ChatUserMain extends AppCompatActivity  {
             }
         });
     }
+
+    // Helper method to check if a message already exists in the list
+    private boolean isMessageDuplicated(Message message) {
+        for (Message m : messageList) {
+            // Kiểm tra nếu tin nhắn có ID và nội dung giống nhau
+            if (m.getSenderId() != null &&
+                    m.getSenderId().equals(message.getSenderId()) &&
+                    m.getContent().equals(message.getContent()) &&
+                    m.getTimestamp() == message.getTimestamp()) {  // So sánh timestamp bằng toán tử '=='
+                return true; // Tin nhắn trùng
+            }
+        }
+        return false; // Tin nhắn không trùng
+    }
+
+
+
     private void setListeners() {
         txtSoRequest=findViewById(R.id.txtSoRequest);
         soRequest();
@@ -366,7 +389,6 @@ public class ChatUserMain extends AppCompatActivity  {
     @Override
     protected void onStart() {
         super.onStart();
-
         DatabaseReference userStatusRef = FirebaseDatabase.getInstance()
                 .getReference("users")
                 .child(currentUserID)

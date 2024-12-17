@@ -36,20 +36,21 @@
         app:layout_constraintVertical_bias="0.375" />
 
 
+    <!-- Nội dung dưới ô tìm kiếm -->
+
     <TextView
         android:id="@+id/textView2"
         android:layout_width="107dp"
         android:layout_height="35dp"
+        android:layout_marginBottom="16dp"
         android:gravity="center_horizontal"
         android:text="Tìm kiếm"
         android:textColor="@color/black"
         android:textSize="24sp"
         android:textStyle="bold"
+        app:layout_constraintBottom_toBottomOf="@+id/materialToolbar2"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        tools:layout_editor_absoluteY="13dp" />
-
-    <!-- Nội dung dưới ô tìm kiếm -->
+        app:layout_constraintStart_toStartOf="parent" />
 
     <androidx.constraintlayout.widget.ConstraintLayout
         android:id="@+id/searchLayout"
