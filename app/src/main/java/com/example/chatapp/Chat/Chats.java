@@ -145,22 +145,51 @@ public class Chats extends AppCompatActivity implements UserListener {
         infoChatBtn.setOnClickListener(v -> {
             activityInfoChatBtn();
         });
-        // Set up the send button click listener
+
         sendButton.setOnClickListener(v -> {
             String messageContent = MessageInput.getText().toString().trim();
-            if (selectedImageUri != null) {
-                // Send the image without text
-                sendMessage(chatRoomId, currentUserId, null, currentUsername, selectedImageUri.toString());
-                imageViewMessage.setVisibility(View.GONE); // Hide the image after sending
-                selectedImageUri = null; // Reset the selected image URI
-            } else if (!messageContent.isEmpty()) {
-                // Send the text message
-                sendMessage(chatRoomId, currentUserId, messageContent, currentUsername, null);
-                MessageInput.setText(""); // Clear the input field after sending
-            } else {
-                Toast.makeText(Chats.this, "Please enter a message or select an image.", Toast.LENGTH_SHORT).show();
-            }
+
+            // Kiểm tra quan hệ bạn bè trước khi gửi tin nhắn
+            FirebaseFirestore db = FirebaseFirestore.getInstance();
+            db.collection("friends")
+                    .document(currentUserId) // Tài liệu của currentUserId
+                    .get()
+                    .addOnCompleteListener(task -> {
+                        if (task.isSuccessful()) {
+                            DocumentSnapshot document = task.getResult();
+                            if (document != null && document.exists()) {
+                                // Kiểm tra xem friendId có tồn tại trong tài liệu và có giá trị true không
+                                Boolean isFriend = document.getBoolean(friendId);
+                                if (isFriend != null && isFriend) {
+                                    // Nếu là bạn bè, gửi tin nhắn
+                                    if (selectedImageUri != null) {
+                                        // Gửi hình ảnh mà không có văn bản
+                                        sendMessage(chatRoomId, currentUserId, null, currentUsername, selectedImageUri.toString());
+                                        imageViewMessage.setVisibility(View.GONE); // Ẩn hình ảnh sau khi gửi
+                                        selectedImageUri = null; // Reset URI hình ảnh
+                                    } else if (!messageContent.isEmpty()) {
+                                        // Gửi tin nhắn văn bản
+                                        sendMessage(chatRoomId, currentUserId, messageContent, currentUsername, null);
+                                        MessageInput.setText(""); // Xóa nội dung sau khi gửi
+                                    } else {
+                                        Toast.makeText(Chats.this, "Please enter a message or select an image.", Toast.LENGTH_SHORT).show();
+                                    }
+                                } else {
+                                    // Nếu không phải bạn bè, thông báo lỗi
+                                    Toast.makeText(Chats.this, "You can only message friends.", Toast.LENGTH_SHORT).show();
+                                }
+                            } else {
+                                Toast.makeText(Chats.this, "Error checking friend status.", Toast.LENGTH_SHORT).show();
+                            }
+                        } else {
+                            Toast.makeText(Chats.this, "Failed to check friend status.", Toast.LENGTH_SHORT).show();
+                        }
+                    });
         });
+
+
+
+
         btnBack.setOnClickListener(v -> {
             Log.d("Chats", "Back button clicked!");
             finish();
@@ -269,7 +298,7 @@ private void setImage(ImageView avt, String userId, Context context) {
         if (friendId.contains(",") || friendId.startsWith("GROUP_")) {
             // Xử lý nhóm chat
             chatRoomId = getIntent().getStringExtra("chatRoomId");
-            if(friendId.startsWith("GROUP_")){
+            if (friendId.startsWith("GROUP_")) {
                 chatRoomId = friendId;
             }
             if (chatRoomId == null) {
@@ -307,18 +336,20 @@ private void setImage(ImageView avt, String userId, Context context) {
                         loadMessages(chatRoomId); // Tải tin nhắn nếu nhóm đã tồn tại
                     }
                 }
+
                 @Override
                 public void onCancelled(@NonNull DatabaseError databaseError) {
                     Toast.makeText(Chats.this, "Error checking group chat: " + databaseError.getMessage(), Toast.LENGTH_SHORT).show();
                 }
             });
-        } else {
-            // Xử lý chat cá nhân
-            Log.d("test", "vao duoc");
-            chatRoomId = currentUserId.compareTo(friendId) < 0
-                    ? currentUserId + "_" + friendId
-                    : friendId + "_" + currentUserId;
-            DatabaseReference chatRoomRef = FirebaseDatabase.getInstance()
+
+     } else {
+           // Xử lý chat cá nhân
+           Log.d("test", "vao duoc");
+           chatRoomId = currentUserId.compareTo(friendId) < 0
+                   ? currentUserId + "_" + friendId
+                   : friendId + "_" + currentUserId;
+          DatabaseReference chatRoomRef = FirebaseDatabase.getInstance()
                     .getReference("chatRooms")
                     .child(chatRoomId);
             chatRoomRef.addListenerForSingleValueEvent(new ValueEventListener() {
@@ -328,7 +359,7 @@ private void setImage(ImageView avt, String userId, Context context) {
                         // Tạo phòng chat cá nhân
                         Map<String, Object> chatRoomInfo = new HashMap<>();
                         chatRoomInfo.put("user1", currentUserId);
-                        chatRoomInfo.put("user2", friendId);
+                       chatRoomInfo.put("user2", friendId);
                         chatRoomRef.setValue(chatRoomInfo).addOnCompleteListener(task -> {
                             if (task.isSuccessful()) {
                                 loadMessages(chatRoomId);
@@ -346,6 +377,9 @@ private void setImage(ImageView avt, String userId, Context context) {
                 }
             });
         }
+
+
+
     }
 
 

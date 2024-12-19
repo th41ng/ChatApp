@@ -101,7 +101,6 @@ public class groupChat extends AppCompatActivity {
 
 
 
-
     private void getUser() {
         FirebaseFirestore database = FirebaseFirestore.getInstance();
         String currentUserId = getIntent().getStringExtra("userId");
@@ -123,27 +122,41 @@ public class groupChat extends AppCompatActivity {
                             }
                         }
 
-                        database.collection("users")
-                                .whereIn(FieldPath.documentId(), friendIds)
-                                .get()
-                                .addOnCompleteListener(userTask -> {
-                                    if (userTask.isSuccessful() && userTask.getResult() != null) {
-                                        List<User> users = new ArrayList<>();
-                                        for (QueryDocumentSnapshot queryDocumentSnapshot : userTask.getResult()) {
-                                            User user = queryDocumentSnapshot.toObject(User.class);
-                                            user.setUserId(queryDocumentSnapshot.getId());
-                                            users.add(user);
-                                        }
+                        if (friendIds.isEmpty()) {
+                            // Không có bạn bè
+                            Toast.makeText(this, "You have no friends to add to the group.", Toast.LENGTH_SHORT).show();
+                        } else {
+                            database.collection("users")
+                                    .whereIn(FieldPath.documentId(), friendIds)
+                                    .get()
+                                    .addOnCompleteListener(userTask -> {
+                                        if (userTask.isSuccessful() && userTask.getResult() != null) {
+                                            List<User> users = new ArrayList<>();
+                                            for (QueryDocumentSnapshot queryDocumentSnapshot : userTask.getResult()) {
+                                                User user = queryDocumentSnapshot.toObject(User.class);
+                                                user.setUserId(queryDocumentSnapshot.getId());
+                                                users.add(user);
+                                            }
 
-                                        if (!users.isEmpty()) {
-                                            all_fr_to_groupAdapter adapter = new all_fr_to_groupAdapter(users, selectedIds -> {
-                                                selectedUserIds = selectedIds;
-                                            });
-                                            allFrRecyclerView.setLayoutManager(new LinearLayoutManager(this));
-                                            allFrRecyclerView.setAdapter(adapter);
+                                            if (!users.isEmpty()) {
+                                                all_fr_to_groupAdapter adapter = new all_fr_to_groupAdapter(users, selectedIds -> {
+                                                    selectedUserIds = selectedIds;
+                                                });
+                                                allFrRecyclerView.setLayoutManager(new LinearLayoutManager(this));
+                                                allFrRecyclerView.setAdapter(adapter);
+                                            } else {
+                                                // Nếu không tìm thấy người dùng nào, hiển thị thông báo
+                                                Toast.makeText(this, "No friends found.", Toast.LENGTH_SHORT).show();
+                                            }
+                                        } else {
+                                            // Lỗi khi lấy dữ liệu người dùng
+                                            Toast.makeText(this, "Failed to retrieve user data.", Toast.LENGTH_SHORT).show();
                                         }
-                                    }
-                                });
+                                    });
+                        }
+                    } else {
+                        // Lỗi khi lấy dữ liệu bạn bè
+                        Toast.makeText(this, "Failed to retrieve friends.", Toast.LENGTH_SHORT).show();
                     }
                 });
     }

@@ -149,7 +149,6 @@ public class ChatInfo extends AppCompatActivity {
 
     private void deleteGroupFromFirebase() {
         DatabaseReference dbRef = FirebaseDatabase.getInstance().getReference();
-
         // Xóa dữ liệu từ Firebase Realtime Database
         dbRef.child("chatRooms").child(chatRoomId).removeValue()
                 .addOnCompleteListener(task -> {

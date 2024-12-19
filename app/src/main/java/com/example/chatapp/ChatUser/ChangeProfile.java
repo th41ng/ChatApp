@@ -19,6 +19,7 @@ import com.bumptech.glide.Glide;
 import com.cloudinary.android.MediaManager;
 import com.cloudinary.android.callback.ErrorInfo;
 import com.cloudinary.android.callback.UploadCallback;
+import com.example.chatapp.CloudinaryManager;
 import com.example.chatapp.R;
 import com.example.chatapp.Re_Sign.LoginActivity;
 import com.google.firebase.auth.FirebaseAuth;
@@ -40,7 +41,7 @@ public class ChangeProfile extends AppCompatActivity {
     private FirebaseAuth mAuth;
     // Khai báo ActivityResultLauncher
     private ActivityResultLauncher<Intent> pickImageLauncher;
-
+    // Static flag to check if MediaManager is initialized
     private static boolean isMediaManagerInitialized = false;
     // Biến lưu trữ URI của ảnh được chọn
     private Uri selectedImageUri;
@@ -53,17 +54,6 @@ public class ChangeProfile extends AppCompatActivity {
 
         // Khởi tạo FirebaseAuth
         mAuth = FirebaseAuth.getInstance();
-
-        // Cấu hình Cloudinary
-        Map<String, Object> config = new HashMap<>();
-        config.put("cloud_name", "dq5ajyj0q"); // Tên Cloudinary
-        config.put("api_key", "683173744638424"); // API Key
-        config.put("api_secret", "LkEEzzQsC9AfYLfT5AG9XCOx73A"); // API Secret
-
-        if (!isMediaManagerInitialized) {
-            MediaManager.init(this, config); // Truyền cấu hình vào khi khởi tạo
-            isMediaManagerInitialized = true;
-        }
 
         fullname = findViewById(R.id.fullname);
         email = findViewById(R.id.email);
@@ -140,7 +130,7 @@ public class ChangeProfile extends AppCompatActivity {
         });
 
         setListeners();
-
+        CloudinaryManager.initialize(this);
     }
     private void setListeners(){
         imageBack.setOnClickListener(view-> getOnBackPressedDispatcher().onBackPressed());

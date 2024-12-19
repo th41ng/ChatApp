@@ -2,11 +2,10 @@ package com.example.chatapp.ChatUser;
 
 import android.content.Intent;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.View;
 import android.widget.ImageButton;
-import android.widget.ImageView;
 import android.widget.ProgressBar;
-import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
@@ -16,8 +15,8 @@ import androidx.recyclerview.widget.RecyclerView;
 import com.example.chatapp.Chat.Chats;
 import com.example.chatapp.Chat.groupChat;
 import com.example.chatapp.R;
-import com.google.firebase.auth.FirebaseAuth;
-import com.google.firebase.auth.FirebaseUser;
+import com.google.firebase.database.DatabaseReference;
+import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FieldPath;
 import com.google.firebase.firestore.FirebaseFirestore;
@@ -34,6 +33,8 @@ public class UserActivity extends AppCompatActivity implements UserListener{
     private RecyclerView usersRecyclerView;
     private ImageButton btncreategr;
     private ImageButton btnhome, btnfriend, btnfindfriend;
+    String chatRoomId;
+    String currentUserID;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -48,11 +49,14 @@ public class UserActivity extends AppCompatActivity implements UserListener{
         btnfindfriend = findViewById(R.id.btnfindfriend);
         btnhome= findViewById(R.id.btnhome);
 
-        String currentUserID = getIntent().getStringExtra("userId");
+        currentUserID = getIntent().getStringExtra("userId");
         String userName = getIntent().getStringExtra("name");
         String phone = getIntent().getStringExtra("phone");
         String encodedImage=getIntent().getStringExtra("image");
         String email = getIntent().getStringExtra("email");
+
+
+
 
         btnfriend.setOnClickListener(v -> {
             Intent intent = new Intent(getApplicationContext(), UserActivity.class);
@@ -185,7 +189,7 @@ public class UserActivity extends AppCompatActivity implements UserListener{
     public void onBtnRemoveFriend(User user) {
         String currentUserId = getIntent().getStringExtra("userId");
         String targetUserId = user.getUserId();
-
+        String friendId = user.getUserId();
         // Remove from current user's friend list
         FirebaseFirestore database = FirebaseFirestore.getInstance();
         database.collection("friends")
@@ -204,6 +208,7 @@ public class UserActivity extends AppCompatActivity implements UserListener{
                                 // Cập nhật danh sách bạn bè ngay tại đây mà không cần chuyển qua Activity khác
                                 // Tạo lại adapter và notify lại dữ liệu
                                 removeUserFromList(user);
+                                deleteMessage(friendId);
                             })
                             .addOnFailureListener(e -> {
                                 Toast.makeText(getApplicationContext(), "Error while unfriend", Toast.LENGTH_SHORT).show();
@@ -213,7 +218,22 @@ public class UserActivity extends AppCompatActivity implements UserListener{
                     Toast.makeText(getApplicationContext(), "Error while unfriend", Toast.LENGTH_SHORT).show();
                 });
     }
+    private void deleteMessage(String friendId) {
 
+       chatRoomId = currentUserID.compareTo(friendId) < 0
+               ? currentUserID + "_" + friendId
+               : friendId + "_" + currentUserID;
+        DatabaseReference dbRef = FirebaseDatabase.getInstance().getReference();
+        // Xóa dữ liệu từ Firebase Realtime Database
+        dbRef.child("chatRooms").child(chatRoomId).removeValue()
+                .addOnCompleteListener(task -> {
+                    if (task.isSuccessful()) {
+                        Log.d("deleteMessage", "deleteMessage ok");
+                    } else {
+                        Log.e("deleteMessage", "Failed", task.getException());
+                    }
+                });
+    }
     private void removeUserFromList(User user) {
         // Lấy danh sách bạn bè hiện tại
         List<User> currentUserList = ((UsersAdapter) usersRecyclerView.getAdapter()).getUsersList();

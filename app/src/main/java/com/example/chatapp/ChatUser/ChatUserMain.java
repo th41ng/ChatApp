@@ -82,6 +82,8 @@ public class ChatUserMain extends AppCompatActivity  {
         initializeUI();
         loadUserDetails();
         setListeners();
+
+
     }
 
 
